@@ -1,0 +1,31 @@
+
+Important
+---------
+
+More case studies
+
+
+
+
+
+Not so important
+----------------
+
+More conventional packaging
+	(eg using Cabal, identifying a place in the library hierarchy, 
+	some automatic test cases, ...)
+
+Improving the documentation
+
+Experimenting with different table types 
+	(seems: lazy maps are comparable with stricter arrays)
+
+Revise the classes that manage semantic details
+	(we need to look at a few more applications and look at the
+	attribute grammar mechanism before we settle on this.)
+
+Generalise the monad support
+	(we don't expand all sharing yet, so monad laws only hold for
+	non-packed examples; but unpacking will be expensive, so more
+	thought needed here.)
+

@@ -1,0 +1,123 @@
+NOTE: this code has been modified from the original in order
+to obtain better run time comparisons with the OCaml code in the
+parent director.
+
+Samer Abdallah
+2017
+
+%-------------------------------------------------------------------------------
+Running/compiling
+
+hugs BasicTest.hs 
+	-- for Haskell-98 code, basic tests of grammars
+
+hugs -98 +o Misc.hs 
+	-- for grammars using non-Haskell-98 extensions
+
+hugs -98 +o Main.hs 
+	-- for combined testing utility on several grammars
+
+ghc --make -fglasgow-exts -fallow-overlapping-instances Main.hs 
+	-- NB flags have changed for GHC 6.8 onwards
+
+%---------------------------------------
+Running basic tests
+
+There's a crude system for running named tests on particular grammars.
+It is based on selecting a grammar, test case name, then test case
+parameter or index. These are selected via the command line. 
+
+Example:
+	./a.out T2 pp_ambig 30
+
+   will parse with Tomita grammar 2 with input that is ambiguous in
+   pp-phrase attachment, and print a number obtained by traversing the
+	whole results table data structure, and the run time in seconds.
+   In this case, the input is << "nvdn" ++ replicate 30 "pdn" >>,
+   ie total length = 94.
+
+
+If you want to run things more directly, this construct is probably
+what you want:
+
+   PR.pp $ fmap (fmap $ unE . s_results) $ runALP GRAMMAR INPUT START_POS
+
+
+	
+
+
+
+%-------------------------------------------------------------------------------
+Brief documentation
+
+If in doubt, look at the example files - especially T_G1 .. T_G4 or 
+email the authors. 
+
+
+1. general semantic use
+
+   The main type is << ALP t s r >>, where 't' is the token type, 
+   's' the stored/memoized semantic type, and 'r' the result from 
+   some subparser.
+
+   The main functions are based on the McBride-Patterson library for 
+   applicative functors
+
+           (<*>) :: ALP t s (a -> b) -> ALP t s a -> ALP t s b 
+           (<$>) :: (a -> b) -> ALP t s a -> ALP t s b 
+           return :: a -> ALP t s a
+
+   We have INCLUSIVE alternatives (you can define other kinds if you want)
+
+           (<+>) :: ALP t s a -> ALP t s a -> ALP t s a
+
+   The basic parsers are
+   
+           empty :: ALP t s ()
+           term  :: term :: Eq t => t -> ALP t s t
+
+   The memoization operation has two forms. The first one is the primitive
+   operation, which stores some results in the memo table AFTER application
+   of the supplied function. The function can be used for several purposes,
+   including filtering of solutions and introduction of sharing (packing).
+   The "Span" just holds label and start/end information.  If the function 
+   is "id" (after consuming the span), then all sharing is turned off.
+
+	   memoize_ :: MemoLabel l
+	            => (Span l -> [out] -> [out]) 	-- filter function
+		    -> l 				-- label
+		    -> ALP t out out 			-- parser to memoize
+		    -> ALP t out out
+
+   The `standard' version of memoize introduces sharing. The sharing 
+   is mandated via a type class, ie the implementation of the sharing 
+   operation depends on the semantic type. For trees, we just create
+   a singleton "SubNode" element which holds the span information and
+   nothing else. Sharing may not make sense for all types...
+
+	   memoize
+	    :: (SharedSemantic s, PP l, MemoLabel l)
+	    => l -> ALP t (s t l) (s t l) -> ALP t (s t l) (s t l)
+
+
+
+
+
+2. tree use
+
+   Tree-building is just one case of semantics.
+
+   You can use the branch2, branch3 etc functions from ParserResults.lhs
+   and insert these manually to build appropriate nodes.
+
+   If you have MPCs enabled, you can use the overloaded "buildNary" 
+   function in Extensions.lhs (there's also UNFINISHED code there
+   for replicating McBride's simpler << iI a b c Ii >> notation 
+   for applicative functors if you want to avoid overheads).
+
+   We also use the functions "emptyT" and "termT", specialised to tree 
+   building to avoid some overheads (though it could still be more efficient)
+
+   See the T_G1, T_G3 files for examples.
+
+
