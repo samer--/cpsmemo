@@ -29,3 +29,13 @@ grammars on inputs of various lengths:
 	./a.out smml aaa 48
 
 Execution times will be printed out.
+
+Both systems can also be run in the OCaml or Haskell interactive environments. I recommend
+`utop` for OCaml, and `ghci` comes with GHC.
+
+## References
+
+R. A. Frost, R. Hafiz, and P. C. Callaghan, 2007:
+Modular and efficient top-down parsing for ambiguous left-recursive grammars. In Proceedings of the 10th International Conference on Parsing Technologies, pages 109–120. Association for Computational Linguistics.
+
+R. A. Frost, R. Hafiz, and P. Callaghan, 2008: Parser combinators for ambiguous left-recursive grammars. In Practical Aspects of Declarative Languages, pages 167–181. Springer.
