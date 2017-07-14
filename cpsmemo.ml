@@ -59,6 +59,27 @@ module MonadOps (M : MONAD) = struct
     | x :: xs -> liftM2 cons (f x) (mapM f xs)
 end
 
+let sum = List.fold_left (+) 0
+let concat_check ls = 
+  let open List in 
+  let lens = map length ls in
+  let result = sort_uniq compare (concat ls) in
+  Printf.printf "concatenating lists, lens: [%s], unique: %d, lost: %d\n" 
+                (BatString.join ", " (map string_of_int lens))
+                (length result)
+                (sum lens - length result);
+  result
+
+
+let append_check x y = 
+  let open List in
+  let l1, l2 = length x, length y in
+  let result = sort_uniq compare (append x y)  in
+  Printf.printf "appending lists, lens: [%d, %d], unique: %d, lost: %d\n" 
+                l1 l2 (length result) (l1 + l2 - length result);
+  result
+
+
 module ListT (M : MONAD) = struct
   type 'a m = 'a list M.m
   
@@ -66,10 +87,10 @@ module ListT (M : MONAD) = struct
   open MO
 
   let return x = M.return [x]
-  let bind m f = m >>= mapM f >>= (M.return ** List.concat)
+  let bind m f = m >>= mapM f >>= (M.return ** concat_check)
   let lift m   = M.bind m return
   let mzero () = M.return []
-  let mplus f g = liftM2 (@) f g
+  let mplus f g = liftM2 append_check f g
 end
 
 (* -- Monad of mutable references using state monad ---- *)
