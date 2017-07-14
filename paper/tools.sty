@@ -1,0 +1,295 @@
+\NeedsTeXFormat{LaTeX2e}[1995/12/01]
+\ProvidesPackage{tools}[2007/12/25 v1.1 Samer's general LaTeX tools]
+\DeclareOption{detbar}{\def\detbar{y}}
+\DeclareOption{underlinevec}{\def\underlinevec{y}}
+\DeclareOption{innerparen}{\def\inneropt{paren}}
+\DeclareOption{innerdot}{\def\inneropt{dot}}
+\DeclareOption{innermat}{\def\inneropt{mat}}
+\DeclareOption{expectRomanE}{\def\expectopt{RomanE}}
+\DeclareOption{expectItalicE}{\def\expectopt{ItalicE}}
+\DeclareOption{expectBBE}{\def\expectopt{BBE}}
+\DeclareOption{expectangle}{\def\expectopt{angle}}
+\DeclareOption{nodesc}{\def\nodesc{y}}
+\ExecuteOptions{innerparen}
+\ExecuteOptions{expectRomanE}
+\ProcessOptions
+
+\providecommand{\comment}[1] {}
+\usepackage{xspace,array,amsmath,graphicx}
+%\usepackage{units}
+\ifx\ifpdf\undefined
+	\usepackage{ifpdf}
+\fi
+\ifpdf
+	\usepackage{epstopdf}
+\else
+\fi
+
+% PSTricks things
+%\usepackage{pstcol,pstricks,pst-node,pst-plot}
+%\psset{linewidth=0.4pt,labelsep=3pt,dotsize=1.2mm,%
+%	arrowsize=2pt 2.5,arrowlength=1,arrowinset=0.2,%
+%	gridwidth=0.4pt,griddots=10,subgriddiv=1,gridlabels=7pt,gridcolor=gray}
+
+\let\oldS=\S
+\newcommand{\sect}[1]	{$\oldS\,#1$}
+\newcommand{\shim}[2]	{\hspace{#1mm plus #2mm}}
+\newcommand{\ie}			{i.e.\@\xspace}
+\newcommand{\vrs}		{vs.\@\xspace}
+\newcommand{\cf}		{cf.\@\xspace}
+\newcommand{\eg}			{e.g.\@\xspace}
+\newcommand{\etc}		{etc.\@\xspace}
+\newcommand{\latin}[1]	{\emph{#1}\xspace}
+\newcommand{\figrf}[1]	{fig.~\ref{f:#1}}
+\newcommand{\Figrf}[1]	{Fig.~\ref{f:#1}}
+%\newcommand{\eqrf}[1]	{eq.~\ref{eq:#1}}
+\newcommand{\eqrf}[1]	{(\ref{eq:#1})}
+\newcommand{\secrf}[1]	{\sect{\ref{s:#1}}}
+\newcommand{\chaprf}[1]	{Chapter~\ref{ch:#1}}
+\newcommand{\ed}[1]		{\texttt{[#1]}}
+\newcommand{\role}		{role\xspace}%{r\^{o}le\xspace}
+\newcommand{\naive}		{na{\"i}ve\xspace}
+\newcommand{\etal}		{\latin{et al}}
+\newcommand{\german}[1]	{\emph{#1}}
+\newcommand{\degr}[1]	{$#1^\circ$}
+%\newcommand{\nth}[1]		{$#1$\hskip 0.1ex th\xspace}
+\newcommand{\mathordinal}[2]{$#1$\hspace*{0.2ex}\raisebox{0.35em}{\scriptsize #2}\xspace}
+\newcommand{\textordinal}[2]{\mbox{#1\hskip 0.12ex \raisebox{0.35em}{\scriptsize #2}}\xspace}
+\newcommand{\nth}[1]		{\mathordinal{#1}{th}}
+\newcommand{\textnth}[1]{\textordinal{#1}{th}}
+\newcommand{\textfst}{\textordinal{1}{st}}
+\newcommand{\textsnd}{\textordinal{2}{nd}}
+\newcommand{\textthrd}{\textordinal{3}{rd}}
+\newcommand{\const}{\text{const.}}
+\newcommand{\D}[1] {$#1$-D\xspace}
+\newcommand{\sh} {$\sharp$}
+\newcommand{\fl} {$\flat$}
+\newcommand{\Hmax}{H_\mathrm{max}}
+\newcommand{\Imax}{I_\mathrm{max}}
+
+% centred dot with space either side for separating things
+%\def\nicedot{\hspace{0.7em}\textperiodcentered\hspace{0.7em}}
+\newlength\nicedotspace
+\setlength\nicedotspace{0.6em plus 0.1em minus 0.2em}
+\def\nicedot{\hspace{\nicedotspace}\textperiodcentered\hspace{\nicedotspace}}
+
+%\newcommand{\margnote}[1]	{\marginpar{\raggedright\itshape\small#1}}
+
+% names
+\newcommand{\Hyvarinen}{Hyv\"arinen\xspace}
+\newcommand{\Kohler}{K\"ohler\xspace}
+\newcommand{\Pragnanz}{Pr\"{a}gnanz\xspace}
+
+% environments
+\ifx\nodesc\undefined
+	\renewenvironment{description}
+		{\begin{list}{}{%
+			\setlength{\labelwidth}{1.5em}
+			\setlength{\leftmargin}{1.5em}
+			\let\makelabel\descriptionlabel
+		}}
+		{\end{list}}
+\fi
+
+\newenvironment{smallquote}
+	{ \begin{quote}	\small}
+	{ \end{quote}}
+
+\providecommand{\figplacement}{tbp}
+\newenvironment{fig}[2][\figplacement]
+	{%
+		\newcommand{\bbfig}[1]{\begin{figure}[##1]}
+		\expandafter\bbfig\expandafter{#1}
+		\def\fglbl{f:#2}
+		\let\ocap=\caption
+		\renewcommand{\caption}[2][]{\ocap[##1]{\small ##2}}
+		\centering\small
+	}{%
+		\label{\fglbl}
+		\end{figure}
+	}
+
+\newenvironment{fig*}[2][\figplacement]
+	{%
+		\newcommand{\bbfig}[1]{\begin{figure*}[##1]}
+		\expandafter\bbfig\expandafter{#1}
+		\def\figlabel{f:#2}
+		\let\ocap=\caption
+		\renewcommand{\caption}[2][]{\ocap[##1]{\small ##2}}
+		\centering\small
+	}{%
+		\label{\figlabel}
+		\end{figure*}
+	}
+
+\newenvironment{eq}[1]
+	{\begin{equation}\def\eqlabel{eq:#1}}
+	{\label{\eqlabel}\end{equation}}%
+
+
+
+
+% ------------- standard mathematics -----------------
+
+% --- calculus
+\let\oldint\int 		\def\int#1\dd{\oldint#1\;\dd}
+\let\oldiint\iint		\def\iint#1\dd#2\dd{\oldiint#1\;\dd#2\;\dd}
+\let\oldiiint\iiint	\def\iiint#1\dd#2\dd#3\dd{\oldiiint#1\;\dd#2\;\dd#3\;\dd}
+\newcommand{\infint}[2] 		{\int_{-\infty}^\infty#2\dd#1}
+\newcommand{\partiald}[2]		{\frac{\partial#1}{\partial#2}}
+\newcommand{\pd}[2]			{\dfrac{\partial#1}{\partial#2}}
+\newcommand{\dd}				{\mathrm{d}}
+\newcommand{\hdbyd}[2][]	{\dd{#1}/\dd{#2}}
+\newcommand{\dbyd}[2][]		{\frac{\dd#1}{\dd#2}}
+\newcommand{\dbydt}[1]		{\frac{\dd#1}{\dd t}}
+\newcommand{\hpd}[2]		{{\partial#1}/{\partial#2}}
+\newcommand{\grad}			{\boldsymbol{\nabla}}
+\newcommand{\hfrac}[2] {#1/#2}
+\newcommand{\hpfrac}[2] {(#1/#2)}
+
+% --- statistics
+\newcommand{\savg}[2][] {%
+	\def\sub{#1} % optional subscript
+	\ifx\sub\empty	{\langle #2 \rangle}
+	\else 			{\langle #2 \rangle}_{#1}
+	\fi}
+	
+\newcommand{\avg}[2][] {%
+	\def\sub{#1} % optional subscript
+	\ifx\sub\empty	{\left\langle #2 \right\rangle}
+	\else 			{\left\langle #2 \right\rangle}_{#1}
+	\fi}
+	
+\def\optRomanE{RomanE}
+\def\optItalicE{ItalicE}
+\def\optBBE{BBE}
+\def\optAngle{angle}
+\ifx\expectopt\optRomanE
+	\newcommand{\expect}[2][]	{%
+		\def\sub{#1} % optional subscript
+		\ifx\sub\empty	\operatorname{E} \, #2
+		\else 			\operatorname{E}_{#1}  #2
+		\fi
+	}
+\fi
+
+\ifx\expectopt\optItalicE
+	\newcommand{\expect}[2][]	{%
+		\def\sub{#1} % optional subscript
+		\ifx\sub\empty	E \, #2
+		\else 			E_{#1}  #2
+		\fi
+	}
+\fi
+
+\ifx\expectopt\optBBE
+	\newcommand{\expect}[2][]	{%
+		\def\sub{#1} % optional subscript
+		\ifx\sub\empty	\mathbb{E} \, #2
+		\else 			\mathbb{E}_{#1}  #2
+		\fi
+	}
+\fi
+
+\ifx\expectopt\optAngle
+	\newcommand{\expect}[2][]	{%
+		\def\sub{#1} % optional subscript
+		\ifx\sub\empty	{\left\langle #2 \right\rangle}
+		\else 			{\left\langle #2 \right\rangle}_{#1}
+		\fi
+	}
+\fi
+
+\newcommand{\sqbr}[1]	{[\,#1]}
+\newcommand{\var}[1]		{\operatorname{var}\, #1}
+\newcommand{\cov}[2]		{\operatorname{cov}[#1,#2]}
+\newcommand{\cc}[2]		{\operatorname{corr}[#1,#2]}
+%\newcommand{\KL}[2] 		{\mathrm{KL}[\, #1 \|\, #2]}
+\newcommand{\KL}[2] 		{D(#1 \|\, #2)}
+\newcommand{\define}		{\overset{\text{\tiny def}}{=}}
+\newcommand{\distr}     {\sim}
+
+% --- sets
+\newcommand*{\union}		{\cup}
+\newcommand*{\diff}		{\backslash}
+\newcommand*{\intersect}	{\cap}
+\newcommand*{\integers} 	{\mathbb{Z}}
+\newcommand*{\reals} 		{\mathbb{R}}
+\newcommand*{\complexes}	{\mathbb{C}}
+%\newcommand{\C} 			{\mathbb{C}}
+\newcommand*{\naturals} 	{\mathbb{N}}
+\newcommand*{\card}[1]	{\abs{#1}}
+%\renewcommand*{\emptyset}	{\varnothing}
+
+% --- misc
+\def\rowvec(#1,#2){\begin{pmatrix} #1 & #2 \end{pmatrix}}
+\def\colvec(#1,#2){\begin{pmatrix} #1 \\ #2 \end{pmatrix}}
+
+\ifx\detbar\undefined\else\def\det#1{|#1|}\fi
+
+\newcommand{\sqtp}{\sqrt{2 \pi}}
+\DeclareMathOperator{\sech}{sech}
+\DeclareMathOperator{\sgn} {sgn}
+\DeclareMathOperator{\trace} {Tr}
+\newcommand{\repart}{\Re\,}
+\newcommand{\impart}{\Im\,}
+\newcommand{\assign}	{\leftarrow}
+\newcommand*\half			{\tfrac{1}{2}}
+\newcommand{\fun}[1] 		{$#1(\cdot)$\xspace}
+\newcommand{\ffun}[1] 		{$#1(\cdot,\cdot)$\xspace}
+\newcommand{\tends}			{\rightarrow}
+\ifx\underlinevec\undefined%
+	\renewcommand*{\vec}[1]		{\mathbf{#1}}
+\else
+	\renewcommand*{\vec}[1]		{\underline{#1}}
+\fi
+\providecommand{\abs}[1]		{\lvert#1\rvert}
+\providecommand{\norm}[1]	{\lVert#1\rVert}
+
+\def\optparen{paren}
+\def\optmat{mat}
+\def\optdot{dot}
+\ifx\inneropt\optparen
+	\newcommand{\inner}[2]		{(#1,#2)}
+\fi
+\ifx\inneropt\optdot
+	\newcommand{\inner}[2]		{#1\cdot#2}
+\fi
+\ifx\inneropt\optmat
+	\newcommand{\inner}[2]		{{#1}^T#2}
+\fi
+	
+% --- psfig bits
+\newcommand{\psmath}[2]	{\psfrag{#1}{\scriptsize $#2$}}
+\newcommand{\psmathbig}[2]	{\psfrag{#1}{\small $#2$}}
+
+
+% \linespread{1.1}
+
+
+% top-aligned boxes
+\newbox\thehbox
+\newcommand{\hangbox}[1]{%
+	\savebox{\thehbox}{#1}%
+	\raisebox{-\ht\thehbox}[0pt][\ht\thehbox]{\usebox{\thehbox}}%
+	%  \raisebox{-\ht\thehbox}[0pt][-\ht\thehbox]{\usebox{\thehbox}}%
+}
+
+\newcommand{\valigntop}[1]{\raisebox{-\height}{#1}}
+\newcommand{\valignmiddle}[1]{\raisebox{-0.5\depth}{#1}}
+		
+\newenvironment{hanging}{%
+	\begingroup
+	\newbox\thebox
+	\begin{lrbox}{\thebox}
+}{%
+	\end{lrbox}%
+	\raisebox{-\ht\thebox}[0pt][\ht\thebox]{\usebox{\thebox}}%
+	\endgroup
+}%
+
+% Hacky indentation - FIXME!
+\newenvironment{indented}
+	{\vspace{-0.6em}\begin{quote}}
+	{\end{quote}\vspace{-0.6em}}
+

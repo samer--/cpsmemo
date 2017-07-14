@@ -1,0 +1,3 @@
+#!/bin/sh
+cat body.tex | awk '/^\\begin{ocaml}/{flag=1;next};/\\end{ocaml}/{flag=0}flag'
+#cat body.tex | perl -lne '/^\\end\{ocaml\}/ && $c = 0; $c and print; /^\\begin\{ocaml\}/ && $c = 1;'

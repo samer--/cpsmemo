@@ -1,0 +1,257 @@
+\newcommand{\postscriptref}[1] {(\emph{see} \textbf{#1})}
+  \providecommand{\url}[1] {\texttt{#1}}
+\begin{thebibliography}{40}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Asai and Kameyama(2007)]{AsaiKameyama2007}
+K.~Asai and Y.~Kameyama.
+\newblock Polymorphic delimited continuations.
+\newblock In \emph{APLAS}, volume~7, pages 239--254. Springer, 2007.
+
+\bibitem[Burge(1975)]{Burge1975}
+W.~H. Burge.
+\newblock \emph{Recursive programming techniques}.
+\newblock Addison-Wesley Reading, 1975.
+
+\bibitem[Chen and Warren(1993)]{ChenWarren1993}
+W.~Chen and D.~S. Warren.
+\newblock Towards effective evaluation of general logic programs.
+\newblock In \emph{in the Proceedings of the 12th PODS}. Citeseer, 1993.
+
+\bibitem[De~Guzm{\'a}n et~al.(2008)De~Guzm{\'a}n, Carro, Hermenegildo, Silva,
+  and Rocha]{De-GuzmanCarroHermenegildo2008}
+P.~C. De~Guzm{\'a}n, M.~Carro, M.~V. Hermenegildo, C.~Silva, and R.~Rocha.
+\newblock An improved continuation call-based implementation of tabling.
+\newblock In \emph{Practical Aspects of Declarative Languages}, pages 197--213.
+  Springer, 2008.
+
+\bibitem[Desouter et~al.(2015)Desouter, Van~Dooren, and
+  Schrijvers]{DesouterVan-DoorenSchrijvers2015}
+B.~Desouter, M.~Van~Dooren, and T.~Schrijvers.
+\newblock Tabling as a library with delimited control.
+\newblock \emph{Theory and Practice of Logic Programming}, 15\penalty0
+  (4-5):\penalty0 419--433, 2015.
+
+\bibitem[Dyvbig et~al.(2005)Dyvbig, Jones, and Sabry]{DyvbigJonesSabry2005}
+R.~K. Dyvbig, S.~P. Jones, and A.~Sabry.
+\newblock A monadic framework for delimited continuations.
+\newblock Technical Report 615, Computer Science Department Indiana University,
+  2005.
+
+\bibitem[Earley(1970)]{Earley1970}
+J.~Earley.
+\newblock An efficient context-free parsing algorithm.
+\newblock \emph{Communications of the ACM}, 13\penalty0 (2):\penalty0 94--102,
+  1970.
+
+\bibitem[Fairbairn(1987)]{Fairbairn1987}
+J.~Fairbairn.
+\newblock Making form follow function: An exercise in functional programming
+  style.
+\newblock \emph{Software: Practice and Experience}, 17\penalty0 (6):\penalty0
+  379--386, 1987.
+
+\bibitem[Filinski(1994)]{Filinski1994}
+A.~Filinski.
+\newblock Representing monads.
+\newblock In \emph{Proceedings of the 21st ACM SIGPLAN-SIGACT symposium on
+  Principles of programming languages}, pages 446--457. ACM, 1994.
+
+\bibitem[Filinski(1999)]{Filinski1999}
+A.~Filinski.
+\newblock Representing layered monads.
+\newblock In \emph{Proceedings of the 26th ACM SIGPLAN-SIGACT symposium on
+  Principles of programming languages}, pages 175--188. ACM, 1999.
+
+\bibitem[Frost(2003)]{Frost2003}
+R.~Frost.
+\newblock Monadic memoization towards correctness-preserving reduction of
+  search.
+\newblock In \emph{Advances in Artificial Intelligence}, pages 66--80.
+  Springer, 2003.
+
+\bibitem[Frost and Launchbury(1989)]{FrostLaunchbury1989}
+R.~Frost and J.~Launchbury.
+\newblock Constructing natural language interpreters in a lazy functional
+  language.
+\newblock \emph{The Computer Journal}, 32\penalty0 (2):\penalty0 108--121,
+  1989.
+
+\bibitem[Frost(1993)]{Frost1993}
+R.~A. Frost.
+\newblock Guarded attribute grammars.
+\newblock \emph{Software: Practice and Experience}, 23\penalty0 (10):\penalty0
+  1139--1156, 1993.
+
+\bibitem[Frost(1994)]{Frost1994}
+R.~A. Frost.
+\newblock Using memorization to achieve polynomial complexity of purely
+  functional executable specifications of non-deterministic top-down parsers.
+\newblock \emph{ACM SIGPLAN Notices}, 29\penalty0 (4):\penalty0 23--30, 1994.
+
+\bibitem[Frost and Hafiz(2006)]{FrostHafiz2006}
+R.~A. Frost and R.~Hafiz.
+\newblock A new top-down parsing algorithm to accommodate ambiguity and left
+  recursion in polynomial time.
+\newblock \emph{ACM SIGPLAN Notices}, 41\penalty0 (5):\penalty0 46--54, 2006.
+
+\bibitem[Frost et~al.(2007)Frost, Hafiz, and
+  Callaghan]{FrostHafizCallaghan2007}
+R.~A. Frost, R.~Hafiz, and P.~C. Callaghan.
+\newblock Modular and efficient top-down parsing for ambiguous left-recursive
+  grammars.
+\newblock In \emph{Proceedings of the 10th International Conference on Parsing
+  Technologies}, pages 109--120. Association for Computational Linguistics,
+  2007.
+
+\bibitem[Frost et~al.(2008)Frost, Hafiz, and
+  Callaghan]{FrostHafizCallaghan2008}
+R.~A. Frost, R.~Hafiz, and P.~Callaghan.
+\newblock Parser combinators for ambiguous left-recursive grammars.
+\newblock In \emph{Practical Aspects of Declarative Languages}, pages 167--181.
+  Springer, 2008.
+
+\bibitem[Hutton(1990)]{Hutton1990}
+G.~Hutton.
+\newblock Parsing using combinators.
+\newblock In \emph{Functional Programming}, pages 353--370. Springer, 1990.
+
+\bibitem[Johnson(1995)]{Johnson1995}
+M.~Johnson.
+\newblock Memoization in top-down parsing.
+\newblock \emph{Computational Linguistics}, 21\penalty0 (3):\penalty0 405--417,
+  1995.
+
+\bibitem[Johnson and Roark(2000)]{JohnsonRoark2000}
+M.~Johnson and B.~Roark.
+\newblock Compact non-left-recursive grammars using the selective left-corner
+  transform and factoring.
+\newblock In \emph{Proceedings of the 18th conference on Computational
+  linguistics-Volume 1}, pages 355--361. Association for Computational
+  Linguistics, 2000.
+
+\bibitem[Kiselyov(2003)]{Kiselyov2003-fixedpoint}
+O.~Kiselyov.
+\newblock Many faces of the fixed-point combinator, 2003.
+\newblock URL
+  \url{http://okmij.org/ftp/Computation/fixed-point-combinators.html}.
+
+\bibitem[Kiselyov(2012)]{Kiselyov2012}
+O.~Kiselyov.
+\newblock Delimited control in ocaml, abstractly and concretely.
+\newblock \emph{Theoretical Computer Science}, 435:\penalty0 56--76, 2012.
+
+\bibitem[Koskimies(1990)]{Koskimies1990}
+K.~Koskimies.
+\newblock Lazy recursive descent parsing for modular language implementation.
+\newblock \emph{Software: Practice and Experience}, 20\penalty0 (8):\penalty0
+  749--772, 1990.
+
+\bibitem[Leermakers(1993)]{Leermakers1993}
+R.~Leermakers.
+\newblock \emph{The Functional Treatment of Parsing}.
+\newblock International Series in Engineering and Computer Science. Kluwar
+  Academic Publishers, 1993.
+
+\bibitem[Liang et~al.(1995)Liang, Hudak, and Jones]{LiangHudakJones1995}
+S.~Liang, P.~Hudak, and M.~Jones.
+\newblock Monad transformers and modular interpreters.
+\newblock In \emph{Proceedings of the 22nd ACM SIGPLAN-SIGACT symposium on
+  Principles of programming languages}, pages 333--343. ACM, 1995.
+
+\bibitem[Lickman(1995)]{Lickman1995}
+P.~Lickman.
+\newblock Parsing with fixed points.
+\newblock Master's thesis, University of Cambridge, 1995.
+
+\bibitem[McAdam(1997)]{McAdam1997}
+B.~J. McAdam.
+\newblock That about wraps it up --- using fix to handle errors without
+  exceptions, and other programming tricks.
+\newblock Technical report, Laboratory for Foundations of Computer Science, The
+  University of Edinburgh, 1997.
+
+\bibitem[Michie(1968)]{Michie1968}
+D.~Michie.
+\newblock Memo functions and machine learning.
+\newblock \emph{Nature}, 218\penalty0 (5136):\penalty0 19--22, 1968.
+
+\bibitem[Moore(2000)]{Moore2000}
+R.~C. Moore.
+\newblock Removing left recursion from context-free grammars.
+\newblock In \emph{Proceedings of the 1st North American chapter of the
+  Association for Computational Linguistics conference}, pages 249--255.
+  Association for Computational Linguistics, 2000.
+
+\bibitem[Norvig(1991)]{Norvig1991}
+P.~Norvig.
+\newblock Techniques for automatic memoization with applications to
+  context-free parsing.
+\newblock \emph{Computational Linguistics}, 17\penalty0 (1):\penalty0 91--98,
+  1991.
+
+\bibitem[Pereira and Warren(1983)]{PereiraWarren1983}
+F.~C. Pereira and D.~H. Warren.
+\newblock Parsing as deduction.
+\newblock In \emph{Proceedings of the 21st annual meeting on Association for
+  Computational Linguistics}, pages 137--144. Association for Computational
+  Linguistics, 1983.
+
+\bibitem[Porter(1986)]{Porter1986}
+H.~H. Porter.
+\newblock Earley deduction.
+\newblock Technical report, Oregon Graduate Center, 1986.
+
+\bibitem[Ramesh and Chen(1997)]{RameshChen1997}
+R.~Ramesh and W.~Chen.
+\newblock Implementation of tabled evaluation with delaying in {P}rolog.
+\newblock \emph{Knowledge and Data Engineering, IEEE Transactions on},
+  9\penalty0 (4):\penalty0 559--574, 1997.
+
+\bibitem[Schrijvers et~al.(2013)Schrijvers, Demoen, Desouter, and
+  Wielemaker]{SchrijversDemoenDesouter2013}
+T.~Schrijvers, B.~Demoen, B.~Desouter, and J.~Wielemaker.
+\newblock Delimited continuations for {P}rolog.
+\newblock \emph{Theory and Practice of Logic Programming}, 2013.
+
+\bibitem[Tamaki and Sato(1986)]{TamakiSato1986}
+H.~Tamaki and T.~Sato.
+\newblock {OLD} resolution with tabulation.
+\newblock In \emph{Third international conference on logic programming}, pages
+  84--98. Springer, 1986.
+
+\bibitem[Wadler(1985)]{Wadler1985}
+P.~Wadler.
+\newblock How to replace failure by a list of successes a method for exception
+  handling, backtracking, and pattern matching in lazy functional languages.
+\newblock In \emph{Functional Programming Languages and Computer Architecture},
+  pages 113--128. Springer, 1985.
+
+\bibitem[Wadler(1990)]{Wadler1990}
+P.~Wadler.
+\newblock Comprehending monads.
+\newblock In \emph{Proceedings of the 1990 ACM conference on LISP and
+  functional programming}, pages 61--78. ACM, 1990.
+
+\bibitem[Wadler(1992)]{Wadler1992}
+P.~Wadler.
+\newblock The essence of functional programming.
+\newblock In \emph{Proceedings of the 19th ACM SIGPLAN-SIGACT symposium on
+  Principles of programming languages}, pages 1--14. ACM, 1992.
+
+\bibitem[Warren(1975)]{Warren1975}
+D.~H. Warren.
+\newblock Earley deduction.
+\newblock \emph{Unpublished note}, 1975.
+
+\bibitem[Warren(1995)]{Warren1995}
+D.~S. Warren.
+\newblock Programming in tabled {P}rolog.
+\newblock 1995.
+\newblock URL \url{http://www.cs.sunysb.edu/~warren/xsbbook/book.html}.
+
+\end{thebibliography}

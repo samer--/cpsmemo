@@ -1,0 +1,49 @@
+\documentclass[a4paper,10pt]{article}
+
+\usepackage[spacing]{microtype}
+\usepackage[T1]{fontenc}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{textcomp}
+\usepackage{amsthm,bbm}
+\usepackage{textcase}
+\usepackage{xcolor,hyperref}
+\usepackage[round]{natbib}
+
+%\renewcommand\ttdefault{lmvtt}
+%\DeclareMathAlphabet{\mathcal}{OMS}{cmsy}{m}{n}
+%\usepackage[utopia]{mathdesign}
+%\linespread{1.05}
+
+\definecolor{DarkRed}{rgb}{0.4,0.1,0}
+\definecolor{MidRed}{rgb}{0.6,0,0}
+\hypersetup{colorlinks,citecolor=black,urlcolor=MidRed,linkcolor=MidRed}
+
+\newcommand\loarrow[1]{\overset{\rule{0pt}{0.1em}\smash{\leftarrow}}{#1}}
+\newcommand\roarrow[1]{\overset{\rule{0pt}{0.1em}\smash{\rightarrow}}{#1}}
+%\newcommand\loarrow[1]{\overleftarrow{#1}}
+%\newcommand\roarrow[1]{\overrightarrow{#1}}
+
+\newcommand{\citepos}[1]{\citeauthor{#1}'s \citeyearpar{#1}\xspace}
+\let\cite=\citep
+
+\input{preamble.tex}
+
+\date{13th July, 2017\footnote{The bulk of this note was written in 2013 while the author
+was affiliated with UCL. Sections 7 and 8 were written in July 2017 while the author was affiliated with Jukedeck Ltd.}}
+
+\title{\TheTitle}
+\author{\TheAuthors}
+
+\def\myclearpage{}
+\def\iftwocol#1#2{#2}
+\begin{document}
+	\maketitle
+	\begin{abstract}\TheAbstract\end{abstract}
+	\input{body.tex}
+
+	%\pagebreak
+	\bibliographystyle{abbrvnat}
+	{\bibliography{all,c4dm,compsci}}
+\end{document}
+

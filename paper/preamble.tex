@@ -1,0 +1,98 @@
+\usepackage{tools}
+\usepackage{listings}
+\usepackage{stmaryrd}
+
+\definecolor{ListingBar}{rgb}{0.8,0.8,0.8}
+\lstnewenvironment{prolog} {\lstset{%
+	language=prolog,
+	columns=spaceflexible,
+	identifierstyle=\itshape,
+	emphstyle=\upshape,
+	xleftmargin=1.2em,
+	emph={X,Y,Z},
+	morekeywords={table}
+	}} {}
+\lstnewenvironment{ocaml} {\lstset{language=[Objective]Caml,
+	columns=spaceflexible,
+	frame=lines,
+	aboveskip=0.75em,
+	belowskip=0.75em}} {}
+\lstnewenvironment{ocamlet} {\lstset{language=[Objective]Caml,columns=spaceflexible,xleftmargin=1.2em}} {}
+\lstnewenvironment{badocaml} {\lstset{
+	frame=leftline,
+	framesep=0.9em,
+	framerule=0.3em,
+	xleftmargin=1.2em,
+	columns=spaceflexible,
+	rulecolor=\color{ListingBar},
+	language=[Objective]Caml
+	}} {}
+\lstnewenvironment{ocaml-tt} {\lstset{language=[Objective]Caml,
+  basicstyle=\ttfamily\small,
+	emphstyle=\mdseries,
+	keywordstyle=\bfseries,
+  identifierstyle=\upshape, 
+	columns=spaceflexible,
+	% framesep=0.5em,
+	% xleftmargin=0.1em,
+	% xleftmargin=1.2em,
+	frame=single,
+	aboveskip=0.75em,
+	belowskip=0.75em}} {}
+
+\lstset{%
+  language=[Objective]Caml,
+  basicstyle=\rmfamily,
+  identifierstyle=\itshape,
+	commentstyle=\sffamily\itshape\color{DarkRed},
+	keywordstyle=\sffamily\bfseries,
+  tabsize=2,
+  columns=fullflexible, 
+  keepspaces=true,
+	% xleftmargin=1.2em,
+  gobble=2,
+	literate=[*]{'a}{{$\alpha$}}1{'b}{{$\beta$}}1{'c}{{$\gamma$}}1{'d}{{$\delta$}}1{'w}{{$\omega$}}1
+               {+}{{$+$}}1 {/}{{$/$}}1 
+							 {\}}{]}1 {\{}{[}1
+							 {\}\}}{\}}1 {\{\{}{\{}1
+							 {\{\}}{[\,]}2
+               [*]{\ *\ }{{ $\times$ }}3
+               {**}{{$\circ$}}1
+               {=}{{$=$}}1 
+               {<>}{{$\neq$}}1 {>}{{$>$}}1 {<}{{$<$}}1 
+               {++}{{$+\!\!\!+$}}1 {::}{{$::$}}1
+               % {\\\\}{{\char`\\\char`\\}}1
+               {->}{{$\rightarrow$}}2 {>=}{{$\geq$}}2 {<-}{{$\leftarrow$}}2
+               {<=}{{$\leq$}}2 {=>}{{$\Rightarrow$}}2
+               {<<}{{$\ll$}}2 {>>}{{$\gg$}}2 {>>=}{{$\gg\!\!=$}}2
+               {*>}{{$*\!\!\!>$}}2 {<|>}{{$<\!\!\!|\!\!\!>$}}3
+               % {*>}{{$*\!\!\!>$}}2 {<|>}{{$\obar$}}2
+               % {<*>}{{$\varoast$}}2 {<+>}{{$\varoplus$}}2
+               {<*>}{{$<\!\!\!*\!\!\!>$}}2 {<+>}{{$<\!\!\!\!+\!\!\!\!>$}}2
+               % {|}{{$\mid$}}1
+               % {undefined}{{$\bot$}}1
+               {not\ }{{$\neg$}}1 {epsilon}{{$\epsilon$}}1
+               % {`elem`}{{$\in$}}1
+               % {forall}{{$\forall$}}1
+  }
+
+\def\OCaml{OCaml\xspace}
+\def\TheAcknowledgments{The author would like to acknowledge the support of Nicolas Gold, UCL, and
+the UK Engineering and Physical Sciences Research Council (grant number EP/G060525/2)
+during the period when most of this manuscript was written in 2013, and the support of Jukedeck Ltd.
+while it was being completed in 2017.}
+\def\TheAuthors{Samer Abdallah (\textsf{samer.abdallah.00@gmail.com)}}
+\def\TheTitle{Memoisation: Purely, Left-recursively,\\and with (Continuation Passing) Style}
+\def\TheAbstract{Memoisation, or tabling, is a well-known technique that yields large improvements
+in the performance of some recursive computations. Tabled resolution in Prologs such
+as XSB and B-Prolog can transform so called \emph{left-recursive} predicates from 
+non-terminating computations into finite and well-behaved ones. In the functional
+programming literature, memoisation has usually been implemented in a way that does
+not handle left-recursion, requiring supplementary mechanisms to prevent non-termination.
+A notable exception is \citepos{Johnson1995} continuation passing approach in Scheme.
+This, however, relies on mutation of a memo table data structure and coding in explicit
+continuation passing style. We show how Johnson's approach can be implemented purely functionally
+in a modern, strongly typed functional language (\OCaml), presented via
+a monadic interface that hides the implementation details, yet providing a way
+to return a compact represention of the memo tables at the end of the computation.
+}
