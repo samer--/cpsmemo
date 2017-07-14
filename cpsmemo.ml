@@ -431,43 +431,47 @@ module T1 (MM: MONADMEMOTABLE) = struct
 		return (["s",gs], s)
 end
 
-(* 
 module T2 (MM: MONADMEMOTABLE) = struct
 	include GrammarOps (MM)
 	
 	let sentences i = (words "n v d n") @ List.concat (replicate i (words "p d n"))
-	let grammar = 
+
+  (* open recursive grammar - a lot of mutual recursion here *)
+  let grammar' [advm; adjm; nm; vc; np0; np1; np; pp; s; vp; dir] = 
 		let t = term in 
-		memrec (fun advm -> t "a" *> advm <|> t "a" <|> advm *> t "c" *> advm) >>= fun advm ->
-		memrec (fun adjm ->= t "j" <|> t "j" *> adjm <|> advm *> t "j" <|> adjm *> t "c" *> adjm) >>= fun adjm ->
-		memrec (fun nm -> t "n" <|> t "n" *> nm) >>= fun nm ->
-		mem (t "x" *> t "v" <|> t "v") >>= fun vc ->
-		mem (nm <|> adjm *> nm <|> t "d" *> nm <|> t "t" *> adjm *> nm) >>= fun np0 ->
-		mem (adjm *>  np0 *> pp *> pp
-						 <|> adjm *> np0 *> pp
-						 <|> adjm *> np0
-						 <|> np0 *> pp
-						 <|> np0
-						 <|> np0 *> pp *> pp) >>= fun np1 ->
-		np     = np *> t "c" *> np
-							<|> np1 *> t "t" *> s
-							<|> np1 *> s
-							<|> np1
-		pp     = pp *> t "c" *> pp <|> t "p" *> np
-		s      = np *> vp *> pp *> pp
-						 <|> np *> vp *> pp
-						 <|> np *> vp
-						 <|> s *> t "c" *> s
-		vp     = vc *> np <|> vp *> t "c" *> vp <|> vc
+		[ (* advm *) t "a" *> advm <|> t "a" <|> advm *> t "c" *> advm
+    ; (* adjm *) t "j" <|> t "j" *> adjm <|> advm *> t "j" <|> adjm *> t "c" *> adjm
+    ; (* nm *)   t "n" <|> t "n" *> nm
+    ; (* vc *)   t "x" *> t "v" <|> t "v"
+    ; (* np0 *)  nm <|> adjm *> nm <|> t "d" *> nm <|> t "t" *> adjm *> nm
+    ; (* np1 *)  adjm *>  np0 *> pp *> pp
+             <|> adjm *> np0 *> pp
+             <|> adjm *> np0
+             <|> np0 *> pp
+             <|> np0
+             <|> np0 *> pp *> pp
+    ; (* np *)   np *> t "c" *> np
+             <|> np1 *> t "t" *> s
+             <|> np1 *> s
+             <|> np1
+    ; (* pp *)   pp *> t "c" *> pp <|> t "p" *> np
+    ; (* s *)    np *> vp *> pp *> pp
+             <|> np *> vp *> pp
+             <|> np *> vp
+             <|> s *> t "c" *> s
+    ; (* vp *)   vc *> np <|> vp *> t "c" *> vp <|> vc
+    ; (* dir *)  dir *> t "c" *> dir
+             <|> pp *> vp
+             <|> vp
+             <|> vp *> pp
+    ]
 
-		memrec (fun dir -> dir *> t "c" *> dir
- 									 <|> pp *> vp
-									 <|> vp
-									 <|> vp *> pp) >>= fun dir ->
-
-		return (dir <|> np <|> s)
+  let grammar = 
+    return ()
+    (* fixlist grammar' >>= fun [advm; adjm; nm; vc; np0; np1; np; pp; s; vp; dir] -> *)
+    (* return s *)
 end
-*)
+
 module Test1 = TestG (G1)
 module Test2 = TestG (G2)
 
