@@ -1,8 +1,29 @@
+(* cpsmemo - Nondeterministic, left recursive memoisations using delimited continuations
+ * (c) Samer Abdallah, 2017
+ *)
+
+(* -- utilities -- *)
 let id x = x               (* identity function *)
 let ( ** ) f g x = f (g x)  (* function composition *)
 let cons x xs = x :: xs
 let curry f x y = f (x,y)
 let uncurry f (x,y) = f x y
+
+module type TYPE = sig type t end
+
+(* -- fixed point combinators -- *)
+
+let fix f = (let rec fp x = f fp x in fp)
+let fix2 ( (f : ('a -> 'b) * ('c -> 'd) -> 'a -> 'b),
+           (g : ('a -> 'b) * ('c -> 'd) -> 'c -> 'd) ) =
+  let rec fp x = f (fp,gp) x
+  and     gp x = g (fp,gp) x
+  in (fp,gp)
+
+(* variadic fixed point combinator *)
+let rec fixlist l = List.map (fun li x -> li (fixlist l) x) l
+
+(* -- Basic monads ------------------------------------------------ *)
 
 module type MONAD = sig
   type 'a m
@@ -51,6 +72,9 @@ module ListT (M : MONAD) = struct
   let mplus f g = liftM2 (@) f g
 end
 
+(* -- Monad of mutable references using state monad ---- *)
+
+(* -- universal type, taken from Filinski -- *)
 module Dynamic = struct 
   exception Dynamic
   type t = Dyn of (unit->unit)
@@ -88,8 +112,6 @@ end = struct
                       ((i,ind,outd),(i+1,m))
 end
 
-module type TYPE = sig type t end
-
 module StateM (State : TYPE) = struct
   type 'a m = State.t -> 'a * State.t 
   type state = State.t
@@ -113,12 +135,8 @@ module Ref = struct
   let run m = fst (m Store.empty)
 end
 
-let fix f = (let rec fp x = f fp x in fp)
-let fix2 ( (f : ('a -> 'b) * ('c -> 'd) -> 'a -> 'b),
-           (g : ('a -> 'b) * ('c -> 'd) -> 'c -> 'd) ) =
-  let rec fp x = f (fp,gp) x
-  and     gp x = g (fp,gp) x
-  in (fp,gp)
+
+(* -- Memoisation monad without access to memo tables ------- *)
 
 module type MONADMEMO = sig
   include MONAD
@@ -211,6 +229,9 @@ module Test = struct
   let test_path x = Ref.run (MM.run (memrec TC.path>>= fun path -> path x))
 end
 
+
+(* -- Memoisation monad with access to memo tables ------- *)
+
 module type MONADMEMOTABLE = sig
   include MONAD
   module Nondet : MONADPLUS
@@ -279,6 +300,9 @@ module MemoTabT (Ref : MONADREF) = struct
                                  msum (List.map (fun k -> k y) conts)))))
 end
 
+
+(* -- Parser interface build on any MONADPLUS --------*)
+
 module Parser (M : MONADPLUS) = struct
   let ( *> ) f g xs = M.bind (f xs) g
   let ( <|> ) f g xs = M.mplus (f xs) (g xs)
@@ -293,7 +317,7 @@ module type GRAMMAR = functor (MM : MONADMEMOTABLE) -> sig
   val sentence : int -> bytes list
 end
 
-(* time execution *)
+(* --- timing and testing ------------------------ *)
 let timeit thunk =
   let time_start = Sys.time () in
   let result = thunk () in
@@ -407,11 +431,11 @@ module T1 (MM: MONADMEMOTABLE) = struct
 		return (["s",gs], s)
 end
 
-(* needs tetradic or polyadic fixed point operator!
+(* 
 module T2 (MM: MONADMEMOTABLE) = struct
 	include GrammarOps (MM)
 	
-	let sentences i = map (:[]) $ "nvdn" ++ concat (replicate i "pdn")
+	let sentences i = (words "n v d n") @ List.concat (replicate i (words "p d n"))
 	let grammar = 
 		let t = term in 
 		memrec (fun advm -> t "a" *> advm <|> t "a" <|> advm *> t "c" *> advm) >>= fun advm ->
