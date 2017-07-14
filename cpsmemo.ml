@@ -59,27 +59,6 @@ module MonadOps (M : MONAD) = struct
     | x :: xs -> liftM2 cons (f x) (mapM f xs)
 end
 
-let sum = List.fold_left (+) 0
-let concat_check ls = 
-  let open List in 
-  let lens = map length ls in
-  let result = sort_uniq compare (concat ls) in
-  Printf.printf "concatenating lists, lens: [%s], unique: %d, lost: %d\n" 
-                (BatString.join ", " (map string_of_int lens))
-                (length result)
-                (sum lens - length result);
-  result
-
-
-let append_check x y = 
-  let open List in
-  let l1, l2 = length x, length y in
-  let result = sort_uniq compare (append x y)  in
-  Printf.printf "appending lists, lens: [%d, %d], unique: %d, lost: %d\n" 
-                l1 l2 (length result) (l1 + l2 - length result);
-  result
-
-
 module ListT (M : MONAD) = struct
   type 'a m = 'a list M.m
   
@@ -87,10 +66,10 @@ module ListT (M : MONAD) = struct
   open MO
 
   let return x = M.return [x]
-  let bind m f = m >>= mapM f >>= (M.return ** concat_check)
+  let bind m f = m >>= mapM f >>= (M.return ** List.concat)
   let lift m   = M.bind m return
   let mzero () = M.return []
-  let mplus f g = liftM2 append_check f g
+  let mplus f g = liftM2 List.rev_append f g
 end
 
 (* -- Monad of mutable references using state monad ---- *)
@@ -277,7 +256,23 @@ module MemoTabOps (M : MONADMEMOTABLE) = struct
 
 end
 
-module MemoTabT (Ref : MONADREF) = struct
+module type COLLECTION = sig
+  type 'a t
+  val empty : 'a t
+  val mem : 'a -> 'a t -> bool
+  val add : 'a -> 'a t -> 'a t
+  val fold : ('a -> 'b -> 'b) -> 'a t -> 'b -> 'b
+end
+
+module ListC = struct
+  type 'a t = 'a list
+  let empty = []
+  let mem = List.mem
+  let add x xs = x :: xs
+  let fold = List.fold_right
+end
+
+module MemoTabT (Ref : MONADREF) (Col : COLLECTION) = struct
   module ND = ListT (Ref)
   include Ref
 
@@ -300,9 +295,8 @@ module MemoTabT (Ref : MONADREF) = struct
     new_ref BatMap.empty >>= (fun loc ->
 
     let liftRef m  = Nondet.lift (ND.lift m) in
-    let sanitize (x,(s,_)) = (x,s) in
+    let sanitize (x,(s,_)) = (x, Col.fold cons s []) in
     let upd_entry x e t = liftRef (put_ref loc (BatMap.add x e t)) in
-    let msum = List.fold_left Nondet.mplus (Nondet.mzero ()) in
 
     return (
       get_ref loc >>= return ** List.map sanitize ** BatMap.bindings, 
@@ -310,15 +304,15 @@ module MemoTabT (Ref : MONADREF) = struct
           liftRef (get_ref loc) >>= fun table ->
           try let (res,conts) = BatMap.find x table in
             shift (fun k -> upd_entry x (res,k::conts) table >>
-                            msum (List.map k res))
+                            Col.fold (Nondet.mplus ** k) res (Nondet.mzero ()))
           with Not_found ->
-            shift (fun k -> upd_entry x ([],[k]) table >>
+            shift (fun k -> upd_entry x (Col.empty, [k]) table >>
                             finc p x >>= fun y ->
                             liftRef (get_ref loc) >>= fun table' ->
                             let (res,conts) = BatMap.find x table' in
-                            if List.mem y res then mzero ()
-                            else upd_entry x (y::res,conts) table' >>
-                                 msum (List.map (fun k -> k y) conts)))))
+                            if Col.mem y res then mzero ()
+                            else upd_entry x (Col.add y res,conts) table' >>
+                                 List.fold_right (fun k -> Nondet.mplus (k y)) conts (Nondet.mzero ())))))
 end
 
 
@@ -349,7 +343,8 @@ let timeit thunk =
 let words s = BatString.nsplit s ~by:" "
 
 module TestG (G: GRAMMAR) = struct
-  module MM = MemoTabT (Ref)
+  (* module MM = MemoTabT (Ref) (ListC) *)
+  module MM = MemoTabT (Ref) (BatSet)
   module GM = G (MM)
   include Parser (MM.Nondet)
   include MonadOps (MM)
