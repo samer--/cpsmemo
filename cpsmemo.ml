@@ -304,7 +304,7 @@ module MemoTabT (Ref : MONADREF) (Col : COLLECTION) = struct
           liftRef (get_ref loc) >>= fun table ->
           try let (res,conts) = BatMap.find x table in
             shift (fun k -> upd_entry x (res,k::conts) table >>
-                            Col.fold (Nondet.mplus ** k) res (Nondet.mzero ()))
+                            Col.fold (mplus ** k) res (mzero ()))
           with Not_found ->
             shift (fun k -> upd_entry x (Col.empty, [k]) table >>
                             finc p x >>= fun y ->
@@ -312,7 +312,7 @@ module MemoTabT (Ref : MONADREF) (Col : COLLECTION) = struct
                             let (res,conts) = BatMap.find x table' in
                             if Col.mem y res then mzero ()
                             else upd_entry x (Col.add y res,conts) table' >>
-                                 List.fold_right (fun k -> Nondet.mplus (k y)) conts (Nondet.mzero ())))))
+                                 List.fold_right (fun k -> mplus (k y)) conts (mzero ())))))
 end
 
 

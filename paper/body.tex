@@ -535,19 +535,19 @@ be relatively straightforward.
 
 		let memo fop = let open CO in
 			liftRef (Ref.new_ref BatMap.empty) >>= (fun loc ->
-			let upd_entry x e t = liftRef (Ref.put_ref loc (BatMap.add x e t)) in
+			let update x e t = liftRef (Ref.put_ref loc (BatMap.add x e t)) in
 			return (fun p x ->
 				liftRef (Ref.get_ref loc) >>= fun table ->
 				try let (res,conts) = BatMap.find x table in
-					shift (fun k -> upd_entry x (res,k::conts) table >>
+					shift (fun k -> update x (res,k::conts) table >>
 													msum (List.map k res))
 				with Not_found ->
-					shift (fun k -> upd_entry x ({},{k}) table >>
+					shift (fun k -> update x ({},{k}) table >>
 													fop p x >>= fun y ->
 													liftRef (Ref.get_ref loc) >>= fun table' ->
 													let (res,conts) = BatMap.find x table' in
 													if List.mem y res then mzero ()
-													else upd_entry x (y::res,conts) table' >>
+													else update x (y::res,conts) table' >>
 															 msum (List.map (fun k -> k y) conts))))
 	end
 \end{ocaml}
@@ -724,28 +724,28 @@ entry before returning it.
 			new_ref BatMap.empty >>= (fun loc ->
 
 			let liftRef m  = Nondet.lift (ND.lift m) in
-			let sanitize (x,(s,_)) = (x,s) in
-			let upd_entry x e t = liftRef (put_ref loc (BatMap.add x e t)) in
-			let msum = List.fold_left Nondet.mplus (Nondet.mzero ()) in
+			let sanitize (x,(s,_)) = (x, BatSet.fold cons s {} in
+			let update x e t = liftRef (put_ref loc (BatMap.add x e t)) in
 
 			return (
 				get_ref loc >>= return ** List.map sanitize ** BatMap.bindings, 
 				( fun p x -> let open CCO in let open Nondet in
 						liftRef (get_ref loc) >>= fun table ->
 						try let (res,conts) = BatMap.find x table in
-							shift (fun k -> upd_entry x (res,k::conts) table >>
-															msum (List.map k res))
+							shift (fun k -> update x (res,k::conts) table >>
+															BatSet.fold (mplus ** k) res (mzero ()))
 						with Not_found ->
-							shift (fun k -> upd_entry x ({},{k}) table >>
+							shift (fun k -> update x (BatSet.empty,{k}) table >>
 															fop p x >>= fun y ->
 															liftRef (get_ref loc) >>= fun table' ->
 															let (res,conts) = BatMap.find x table' in
-															if List.mem y res then mzero ()
-															else upd_entry x (y::res,conts) table' >>
-																	 msum (List.map (fun k -> k y) conts)))))
+															if BatSet.mem y res then mzero ()
+															else update x (BatSet.add y res,conts) table' >>
+																	 List.fold_right (fun k -> mplus (k y)) 
+																									 conts (mzero ())))))
 	end
 \end{ocaml}
-\vspace{0.5em}
+Note that the results are now being collected in a data structure optimised for fast lookups (|BatSet|).
 We can use this module to implement a simple parser which, thanks to
 memoisation, is equivalent to an Earley parser. First, we need a parser
 combinator library \cite{Hutton1990}: parsers are represented as nondeterministic
@@ -754,17 +754,15 @@ parse and producing, if successful, the list of remaining tokens. The operators
 |*>| and |<|>| combine two parsers, in sequence or as alternatives, respectively.
 The primitive |epsilon| parses an empty sequence and |term x| matches a single token
 |x|.
-\vspace{0.5em}
 \begin{ocaml}
 	module Parser (M : MONADPLUS) = struct
 		let ( *> ) f g xs = M.bind (f xs) g
 		let ( <|> ) f g xs = M.mplus (f xs) (g xs)
 		let epsilon xs = M.return xs
 		let term x = function | y::ys when x=y -> M.return ys
-                           | _ -> M.mzero ()
+													 | _ -> M.mzero ()
 	end
 \end{ocaml}
-\vspace{0.5em}
 Then we can write a small grammar, equivalent to \citepos{Johnson1995} 
 example of a left recursive grammar.
 \vspace{0.5em}
@@ -901,11 +899,11 @@ token |"a"|, which can be generated using the |sentence| function.
 			input & \multicolumn{3}{c|}{Proposed system} & \multicolumn{3}{c}{Frost et al, 2007} \\
 			length & \textit{sm} & \textit{sml} & \textit{smml} &  \textit{sm} & \textit{sml} & \textit{smml} \\[0.1em]
 			\hline 
-			12 & 0.002 & \textbf{0.002} & \textbf{0.002} &  \textbf{0.001} & 0.004 & 0.003 \\
-			24 & 0.01 & \textbf{0.01} & \textbf{0.01}    &  \textbf{0.005} & 0.02 & 0.02 \\
-			48 & 0.12 & \textbf{0.13} & \textbf{0.15}    &  \textbf{0.02} & 0.3 & 0.3 \\
-			72 & 0.67 & \textbf{0.55} & \textbf{0.61}    &  \textbf{0.10} & 2.4 & 2.5 \\
-			96 & 1.9 & \textbf{1.9} & \textbf{2.1}       &  \textbf{0.26} & 8.1 & 8.7 \\
+			12 & 0.001 & \textbf{0.002} & \textbf{0.002} &  \textbf{0.001} & 0.004 & 0.003 \\
+			24 & 0.008 & \textbf{0.008} & \textbf{0.01}    &  \textbf{0.005} & 0.02 & 0.02 \\
+			48 & 0.08 & \textbf{0.09} & \textbf{0.11}    &  \textbf{0.02} & 0.3 & 0.3 \\
+			72 & 0.39 & \textbf{0.42} & \textbf{0.52}    &  \textbf{0.10} & 2.4 & 2.5 \\
+			96 & 1.2 & \textbf{1.3} & \textbf{1.6}       &  \textbf{0.26} & 8.1 & 8.7 \\
 		\end{tabular}
 	\end{center}
 	\caption{Execution times (in seconds) comparing the system presented here with that of \citet{FrostHafizCallaghan2007}
@@ -1041,3 +1039,4 @@ The following code fragment must be included between the definitions of the
 		let run m = fst (m Store.empty)
 	end
 \end{ocaml}
+% vim: ts=2 sw=2
