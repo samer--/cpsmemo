@@ -379,7 +379,7 @@ module GrammarOps (MM: MONADMEMOTABLE) = struct
   include MM
 end
 
-module G1 (MM : MONADMEMOTABLE) = struct
+module Johnson (MM : MONADMEMOTABLE) = struct
 	include GrammarOps (MM)
 
   let success = function | [] -> true | _ -> false
@@ -398,7 +398,7 @@ module G1 (MM : MONADMEMOTABLE) = struct
   let sentence = List.nth []
 end
 
-module G2 (MM: MONADMEMOTABLE) = struct
+module Frost1 (MM: MONADMEMOTABLE) = struct
 	include GrammarOps (MM)
 
   let grammar = 
@@ -423,7 +423,7 @@ end
 
 let replicate n x = let rec r = function 0 -> [] | n -> x::r (n-1) in r n
 
-module G3 (MM: MONADMEMOTABLE) = struct
+module FrostAmbig (MM: MONADMEMOTABLE) = struct
 	include GrammarOps (MM)
 
   let grammar = 
@@ -451,7 +451,7 @@ module T1 (MM: MONADMEMOTABLE) = struct
 		return (["s",gs], s)
 end
 
-module T2 (MM: MONADMEMOTABLE) = struct
+module Tomita2 (MM: MONADMEMOTABLE) = struct
 	include GrammarOps (MM)
 	
   (* polyadic memoising fixed point *)
@@ -499,9 +499,4 @@ module T2 (MM: MONADMEMOTABLE) = struct
   let grammar = memrec_list rules >>= fmap (flip List.nth 11) >>= fun (gs,s) ->
                 return (["s",gs], fun "s" -> s)
 end
-
-module Test1 = TestG (G1)
-module Test2 = TestG (G2)
-module Test3 = TestG (G3)
-module TestT2 = TestG (T2)
 
