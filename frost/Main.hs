@@ -31,8 +31,8 @@ main = do
 
 -- specs :: GrammarSpec String
 specs = concat [ Misc.specs 
-               -- , G1.specs 
-               -- , G2.specs 
+               , G1.specs 
+               , G2.specs 
                ]
                -- , G3.specs 
                -- , G4.specs ]

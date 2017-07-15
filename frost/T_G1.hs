@@ -1,6 +1,6 @@
 module T_G1 (specs, tests) where
 
-import Data.Map(toList, mapKeys)
+import Data.IntMap(foldr')
 import ParserResults hiding (pp)
 import PP(ps)
 import Extensions
@@ -27,8 +27,9 @@ start = s
 
 ------ END OF tomita 1 ----------
 
-stringy = fmap (map (mapLabels show)) . mapKeys show
-sanitize p ts = stringy $  spanTable $ runALP p ts 0
+traverse = foldr' (\m n -> n + foldr' (\r n -> n+ result_size r) 0 m) 0 . rawResults
+result_size tags = sum (map (\(Tag _ trees) -> sum (map tree_size trees)) tags)
+sanitize p ts = traverse (runALP p ts 0)
 
 specs = [ ("T1",  (sanitize start, tests)) ]
 
