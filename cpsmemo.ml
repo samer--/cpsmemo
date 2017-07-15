@@ -259,23 +259,7 @@ module MemoTabOps (M : MONADMEMOTABLE) = struct
 
 end
 
-module type COLLECTION = sig
-  type 'a t
-  val empty : 'a t
-  val mem : 'a -> 'a t -> bool
-  val add : 'a -> 'a t -> 'a t
-  val fold : ('a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-end
-
-module ListC = struct
-  type 'a t = 'a list
-  let empty = []
-  let mem = List.mem
-  let add x xs = x :: xs
-  let fold = List.fold_right
-end
-
-module MemoTabT (Ref : MONADREF) (Col : COLLECTION) = struct
+module MemoTabT (Ref : MONADREF) = struct
   module ND = ListT (Ref)
   include Ref
 
@@ -298,7 +282,7 @@ module MemoTabT (Ref : MONADREF) (Col : COLLECTION) = struct
     new_ref BatMap.empty >>= (fun loc ->
 
     let liftRef m  = Nondet.lift (ND.lift m) in
-    let sanitize (x,(s,_)) = (x, Col.fold cons s []) in
+    let sanitize (x,(s,_)) = (x, BatSet.fold cons s []) in
     let upd_entry x e t = liftRef (put_ref loc (BatMap.add x e t)) in
 
     return (
@@ -307,14 +291,14 @@ module MemoTabT (Ref : MONADREF) (Col : COLLECTION) = struct
           liftRef (get_ref loc) >>= fun table ->
           try let (res,conts) = BatMap.find x table in
             shift (fun k -> upd_entry x (res,k::conts) table >>
-                            Col.fold (mplus ** k) res (mzero ()))
+                            BatSet.fold (mplus ** k) res (mzero ()))
           with Not_found ->
-            shift (fun k -> upd_entry x (Col.empty, [k]) table >>
+            shift (fun k -> upd_entry x (BatSet.empty, [k]) table >>
                             finc p x >>= fun y ->
                             liftRef (get_ref loc) >>= fun table' ->
                             let (res,conts) = BatMap.find x table' in
-                            if Col.mem y res then mzero ()
-                            else upd_entry x (Col.add y res,conts) table' >>
+                            if BatSet.mem y res then mzero ()
+                            else upd_entry x (BatSet.add y res,conts) table' >>
                                  List.fold_right (fun k -> mplus (k y)) conts (mzero ())))))
 end
 
@@ -345,7 +329,7 @@ let timeit thunk =
 
 let words s = BatString.nsplit s ~by:" "
 
-module MM = MemoTabT (Ref) (BatSet)
+module MM = MemoTabT (Ref)
 
 module TestG (G: GRAMMAR) = struct
   (* module MM = MemoTabT (Ref) (ListC) *)
