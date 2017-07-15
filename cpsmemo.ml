@@ -8,6 +8,8 @@ let ( ** ) f g x = f (g x)  (* function composition *)
 let cons x xs = x :: xs
 let curry f x y = f (x,y)
 let uncurry f (x,y) = f x y
+let flip f x y = f y x
+let rec iota = function | 0 -> [] | n -> iota (n-1) @ [n-1]
 
 module type TYPE = sig type t end
 
@@ -51,6 +53,7 @@ module MonadOps (M : MONAD) = struct
   let (>>=) = bind
   let (>>) m1 m2 = bind m1 (fun _ -> m2)
 
+  let fmap f = return ** f
   let liftM op m = m >>= return ** op
   let liftM2 op m n = m >>= fun x -> n >>= (return ** op x)
 
@@ -342,9 +345,10 @@ let timeit thunk =
 
 let words s = BatString.nsplit s ~by:" "
 
+module MM = MemoTabT (Ref) (BatSet)
+
 module TestG (G: GRAMMAR) = struct
   (* module MM = MemoTabT (Ref) (ListC) *)
-  module MM = MemoTabT (Ref) (BatSet)
   module GM = G (MM)
   include Parser (MM.Nondet)
   include MonadOps (MM)
@@ -423,16 +427,16 @@ module G3 (MM: MONADMEMOTABLE) = struct
 	include GrammarOps (MM)
 
   let grammar = 
-    let x = term "x" in 
-    let s = fix (fun s -> x *> s *> s <|> epsilon) in
-    memrec (fun sm -> x *> sm *> sm <|> epsilon) >>= fun (gsm, sm) ->
-    memrec (fun sml -> sml *> sml *> x <|> epsilon) >>= fun (gsml, sml) ->
+    let a = term "a" in 
+    let s = fix (fun s -> a *> s *> s <|> epsilon) in
+    memrec (fun sm -> a *> sm *> sm <|> epsilon) >>= fun (gsm, sm) ->
+    memrec (fun sml -> sml *> sml *> a <|> epsilon) >>= fun (gsml, sml) ->
     memrec2 ((fun (smml, smml') -> smml *> smml' <|> epsilon),
-             (fun (smml, smml') -> smml *> x)) >>= fun ((gsmml,_), (smml,_)) ->
+             (fun (smml, smml') -> smml *> a)) >>= fun ((gsmml,_), (smml,_)) ->
     return (["s", return []; "sm",gsm; "sml",gsml; "smml",gsmml],
             function "s" -> s | "sm" -> sm | "sml" -> sml | "smml" -> smml)
 
-  let sentence i = replicate i "x"
+  let sentence i = replicate i "a"
 end
 
 module T1 (MM: MONADMEMOTABLE) = struct
@@ -450,44 +454,54 @@ end
 module T2 (MM: MONADMEMOTABLE) = struct
 	include GrammarOps (MM)
 	
-	let sentences i = (words "n v d n") @ List.concat (replicate i (words "p d n"))
+  (* polyadic memoising fixed point *)
+  let memrec_list fops =
+     mapM memo fops >>= fun memos_getters ->
+     let (getters, mfops) = List.split memos_getters in
+     let mfuns = fixlist mfops in
+     return (List.combine getters (fixlist mfops))
+
+	let sentence i = (words "n v d n") @ List.concat (replicate i (words "p d n"))
 
   (* open recursive grammar - a lot of mutual recursion here *)
-  let grammar' [advm; adjm; nm; vc; np0; np1; np; pp; s; vp; dir] = 
+  let [advm; adjm; nm; vc; np0; np1; np; pp; s; vp; dir; start] = List.map (fun i l -> List.nth l i) (iota 12)
+
+  let rules = 
 		let t = term in 
-		[ (* advm *) t "a" *> advm <|> t "a" <|> advm *> t "c" *> advm
-    ; (* adjm *) t "j" <|> t "j" *> adjm <|> advm *> t "j" <|> adjm *> t "c" *> adjm
-    ; (* nm *)   t "n" <|> t "n" *> nm
-    ; (* vc *)   t "x" *> t "v" <|> t "v"
-    ; (* np0 *)  nm <|> adjm *> nm <|> t "d" *> nm <|> t "t" *> adjm *> nm
-    ; (* np1 *)  adjm *>  np0 *> pp *> pp
-             <|> adjm *> np0 *> pp
-             <|> adjm *> np0
-             <|> np0 *> pp
-             <|> np0
-             <|> np0 *> pp *> pp
-    ; (* np *)   np *> t "c" *> np
-             <|> np1 *> t "t" *> s
-             <|> np1 *> s
-             <|> np1
-    ; (* pp *)   pp *> t "c" *> pp <|> t "p" *> np
-    ; (* s *)    np *> vp *> pp *> pp
-             <|> np *> vp *> pp
-             <|> np *> vp
-             <|> s *> t "c" *> s
-    ; (* vp *)   vc *> np <|> vp *> t "c" *> vp <|> vc
-    ; (* dir *)  dir *> t "c" *> dir
-             <|> pp *> vp
-             <|> vp
-             <|> vp *> pp
+		[ (* advm *) (fun g -> t "a" *> advm g <|> t "a" <|> advm g *> t "c" *> advm g)
+    ; (* adjm *) (fun g -> t "j" <|> t "j" *> adjm g <|> advm g *> t "j" <|> adjm g *> t "c" *> adjm g)
+    ; (* nm *)   (fun g -> t "n" <|> t "n" *> nm g)
+    ; (* vc *)   (fun g -> t "x" *> t "v" <|> t "v")
+    ; (* np0 *)  (fun g -> nm g <|> adjm g *> nm g <|> t "d" *> nm g <|> t "t" *> adjm g *> nm g)
+    ; (* np1 *)  (fun g -> adjm g *>  np0 g *> pp g *> pp g
+                       <|> adjm g *> np0 g *> pp g
+                       <|> adjm g *> np0 g
+                       <|> np0 g *> pp g
+                       <|> np0 g
+                       <|> np0 g *> pp g *> pp g)
+    ; (* np *)   (fun g -> np g *> t "c" *> np g
+                       <|> np1 g *> t "t" *> s g
+                       <|> np1 g *> s g
+                       <|> np1 g)
+    ; (* pp *)   (fun g -> pp g *> t "c" *> pp g <|> t "p" *> np g)
+    ; (* s *)    (fun g -> np g *> vp g *> pp g *> pp g
+                       <|> np g *> vp g *> pp g
+                       <|> np g *> vp g
+                       <|> s g *> t "c" *> s g)
+    ; (* vp *)   (fun g -> vc g *> np g <|> vp g *> t "c" *> vp g <|> vc g)
+    ; (* dir *)  (fun g -> dir g *> t "c" *> dir g
+                       <|> pp g *> vp g
+                       <|> vp g
+                       <|> vp g *> pp g)
+    ; (* start *)(fun g -> dir g <|> np g <|> s g)
     ]
 
-  let grammar = 
-    return ()
-    (* fixlist grammar' >>= fun [advm; adjm; nm; vc; np0; np1; np; pp; s; vp; dir] -> *)
-    (* return s *)
+  let grammar = memrec_list rules >>= fmap (flip List.nth 11) >>= fun (gs,s) ->
+                return (["s",gs], fun "s" -> s)
 end
 
 module Test1 = TestG (G1)
 module Test2 = TestG (G2)
+module Test3 = TestG (G3)
+module TestT2 = TestG (T2)
 
