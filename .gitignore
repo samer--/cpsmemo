@@ -5,3 +5,7 @@
 test
 *.hi
 a.out
+*.aux
+*.out
+*.log
+*.*.sw?
