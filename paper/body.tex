@@ -967,15 +967,10 @@ delimited control operators to implement the required effects (statefulness,
 nondeterminism and memoisation) when required, but executing ordinary \OCaml
 code directly and without overhead for the pure functional parts of the computation.
 
-Another possible optimisation would be to replace the list used to collect the
-results from each memoised function with a more efficient associative
-map, since the cost of looking up 
-each new result to see if it has already been seen might be significant when
-there a many results.
-
 All the code used to generate the results in this note, including the modified
 version of Frost et al's code, is available at \url{http:github.com/samer--/cpsmemo}.
 
+\vspace{1em}
 \bigskip
 \noindent
 \textbf{Acknowledgments}\\
