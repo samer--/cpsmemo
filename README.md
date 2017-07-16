@@ -33,6 +33,11 @@ Execution times will be printed out.
 Both systems can also be run in the OCaml or Haskell interactive environments. I recommend
 `utop` for OCaml, and `ghci` comes with GHC.
 
+## Direct style implementation
+
+Directory ccmemo contains a direct style implementation using Oleg Kiselyov's delimcc library,
+which you can install using OPAM.
+
 ## References
 
 R. A. Frost, R. Hafiz, and P. C. Callaghan, 2007:
