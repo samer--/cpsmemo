@@ -45,6 +45,7 @@ module type MONADREF = sig
   val new_ref : 'a -> 'a ref m
   val get_ref : 'a ref -> 'a m
   val put_ref : 'a ref -> 'a -> unit m
+  val run : 'a m -> 'a
 end
 
 module MonadOps (M : MONAD) = struct
@@ -136,6 +137,25 @@ module Ref = struct
   let new_ref x = bind Store.new_loc (fun loc ->
                   bind (put_ref loc x) (fun _ -> return loc))
   let run m = fst (m Store.empty)
+end
+
+module ThunkM = struct
+  type 'a m = unit -> 'a 
+
+  let return x () = x
+  let bind m f s = let x=m () in f x ()
+end
+
+type 'a oref = 'a ref
+module OcamlRef = struct
+  include ThunkM
+
+  type 'a ref = 'a oref
+  let put_ref loc x () = loc := x
+  let upd_ref loc f () = loc := f (!loc)
+  let get_ref loc ()   = !loc
+  let new_ref x () = ref x
+  let run m = m ()
 end
 
 
@@ -329,10 +349,9 @@ let timeit thunk =
 
 let words s = BatString.nsplit s ~by:" "
 
-module MM = MemoTabT (Ref)
 
-module TestG (G: GRAMMAR) = struct
-  (* module MM = MemoTabT (Ref) (ListC) *)
+module TestG (Ref: MONADREF) (G: GRAMMAR) = struct
+  module MM = MemoTabT (Ref)
   module GM = G (MM)
   include Parser (MM.Nondet)
   include MonadOps (MM)
@@ -484,12 +503,12 @@ module Tomita2 (MM: MONADMEMOTABLE) = struct
                 return (["s",gs], fun "s" -> s)
 end
 
-(* module TestJ = TestG (Johnson) *)
-(* module TestF = TestG (Frost1) *)
-(* module TestT = TestG (Tomita2) *)
+(* module TestJ = TestG (Ref) (Johnson) *)
+(* module TestF = TestG (Ref) (Frost1) *)
+(* module TestT = TestG (Ref) (Tomita2) *)
 
 let main args = 
-  let module Test = TestG (FrostAmbig) in
+  let module Test = TestG (OcamlRef) (FrostAmbig) in
   let n = int_of_string args.(2) in
   let gr = args.(1) in
   let _ = Test.(profile gr (sent n)) in
