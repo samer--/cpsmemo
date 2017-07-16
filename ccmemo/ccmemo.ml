@@ -108,7 +108,7 @@ end
 
 module Parser (M : ALT) = struct
   let ( *> ) f g xs = g (f xs)
-  let ( <|> ) f g xs = (M.alt f g) xs (* or M.alt (f xs) (g xs) *)
+  let ( <|> ) f g xs = (M.alt f g) xs
   let epsilon = id 
   let term x = function | y::ys when x=y -> ys
                         | _ -> M.fail ()
@@ -281,11 +281,12 @@ module Tomita2 (MM: MEMOTABLE) = struct
     (["s",gs], fun "s" -> s)
 end
 
+module TestF = TestG (FrostAmbig)
+
 let main args = 
-  let module Test = TestG (FrostAmbig) in
   let n = int_of_string args.(2) in
   let gr = args.(1) in
-  let _ = Test.(profile gr (sent n)) in
+  let _ = TestF.(profile gr (sent n)) in
   ()
 
 let _ = if not !Sys.interactive then main Sys.argv else ()
