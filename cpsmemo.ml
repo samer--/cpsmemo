@@ -484,3 +484,15 @@ module Tomita2 (MM: MONADMEMOTABLE) = struct
                 return (["s",gs], fun "s" -> s)
 end
 
+(* module TestJ = TestG (Johnson) *)
+(* module TestF = TestG (Frost1) *)
+(* module TestT = TestG (Tomita2) *)
+
+let main args = 
+  let module Test = TestG (FrostAmbig) in
+  let n = int_of_string args.(2) in
+  let gr = args.(1) in
+  let _ = Test.(profile gr (sent n)) in
+  ()
+
+let _ = if not !Sys.interactive then main Sys.argv else ()

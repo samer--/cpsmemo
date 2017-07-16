@@ -15,8 +15,8 @@ SOURCES=cpsmemo.cmo
 %.cmx: %.ml 
 	$(OCAMLOPT) -c $(INCLUDES) $<
 
-test: cpsmemo.cmx test.ml
-	$(OCAMLOPT) -o test cpsmemo.cmx test.ml
+test: cpsmemo.ml
+	$(OCAMLOPT) -o test cpsmemo.ml
 
 cpsmemo.cmo: cpsmemo.ml
 cpsmemo.cmx: cpsmemo.ml
