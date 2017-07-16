@@ -92,7 +92,7 @@ module MemoTabT = struct
         let table = !loc in 
         try let (res,conts) = BatMap.find x table in
           shift0 pr (fun k -> upd_entry x (res,k::conts) table; 
-                             BatSet.fold (List.rev_append ** k) res [])
+                              BatSet.fold (List.append ** k) res [])
         with Not_found ->
           shift pr (fun k -> upd_entry x (BatSet.empty, [k]) table;
                              let y = fop p x in
@@ -100,7 +100,7 @@ module MemoTabT = struct
                              let (res,conts) = BatMap.find x table' in
                              if BatSet.mem y res then fail ()
                              else upd_entry x (BatSet.add y res,conts) table';
-                                  List.fold_right (fun k -> List.rev_append (k y)) conts [])))
+                                  List.fold_right (fun k -> List.append (k y)) conts [])))
 end
 
 
