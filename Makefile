@@ -15,16 +15,14 @@ SOURCES=cpsmemo.cmo
 %.cmx: %.ml 
 	$(OCAMLOPT) -c $(INCLUDES) $<
 
-test: cpsmemo.ml
-	$(OCAMLOPT) -o test cpsmemo.ml
+testopt: cpsmemo.ml
+	$(OCAMLOPT) -o testopt cpsmemo.ml
 
-cpsmemo.cmo: cpsmemo.ml
-cpsmemo.cmx: cpsmemo.ml
+test: cpsmemo.ml
+	$(OCAMLC) -o test cpsmemo.ml
 
 clean::
 	  rm -f *.cm[iox] *.[oa] *~ test
 
-# test: cpsmemo.cmo test.ml
-# 	$(OCAMLC) -o test cpsmemo.cmo test.ml
 
 

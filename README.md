@@ -12,12 +12,12 @@ run the OCaml based system, and a GHC (Glasgow Haskell Compiler) development sys
 and run Frost et al's code. You will also need to `cabal install timeit` to install a Haskell
 timing utility.
 
-To run the OCaml test program, do `make test` at the shell prompt and then run commands such as
+To run the OCaml test program, do `make testopt` at the shell prompt and then run commands such as
 
-	./test sm 12
-	./test sml 12
-	./test sml 48
-	./test smml 48
+	./testopt sm 12
+	./testopt sml 12
+	./testopt sml 48
+	./testopt smml 48
 
 To run the Haskell test program, move to the `frost` subdirectory and build the code
 with `make` at the shell prompt. Then the following commands will run various test
