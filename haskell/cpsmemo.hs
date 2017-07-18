@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, RankNTypes, RecursiveDo #-}
+{-# LANGUAGE FunctionalDependencies, MultiParamTypeClasses, FlexibleInstances, RankNTypes, RecursiveDo #-}
 {- cpsmemo - Nondeterministic, left recursive memoisations using delimited continuations
    (c) Samer Abdallah, 2017
  -}
@@ -20,6 +20,7 @@ import qualified Data.Set as Set
 
 type NDC r s = ContT r (ListT (ST s)) -- nondeterministic continuation monad
 type NDCK r s a b =  a -> NDC r s b   -- Kleilsi arrow of NDC monad
+type Table a b = [(a, Set.Set b)]
 
 instance MonadPlus (NDC r s) where
   mzero = ContT {runContT= \k -> mzero}
@@ -28,25 +29,29 @@ instance MonadPlus (NDC r s) where
 run :: NDC a s a -> ST s [a]
 run m = runListT (runContT m return)
 
-memo :: (Ord a, Ord b) => (NDCK r s a b) -> ST s (NDCK r s a b)
-memo f = do
+memo' :: (Ord a, Ord b) => (NDCK r s a b) -> ST s (ST s (Table a b), NDCK r s a b)
+memo' f = do
   loc <- newRef Map.empty
-  let update x e t = lift (lift (writeRef loc (Map.insert x e t)))
-  return (\x -> do
-    table <- readRef loc
-    callCC (\k ->
-      let handle (Just (res,conts)) = do
-            update x (res,k:conts) table
-            foldr' (mplus . k) mzero res
-          handle Nothing = do
-            update x (Set.empty,[k]) table
-            y <- f x
-            table' <- lift (lift (readRef loc))
-            let Just (res,conts) = Map.lookup x table'
-            if Set.member y res then mzero
-            else update x (Set.insert y res, conts) table' >>
-                 foldr' (\k -> mplus (k y)) mzero conts
-      in handle (Map.lookup x table)))
+  let sanitize (x,(s,_)) = (x,s)
+  let feed x table k = do
+      let update e t = lift (lift (writeRef loc (Map.insert x e t)))
+      let consumer (res,conts) = do
+          update (res, k:conts) table
+          foldr' (mplus . k) mzero res
+      let producer = do
+          update (Set.empty, [k]) table
+          y <- f x
+          table' <- lift (lift (readRef loc))
+          let Just (res,conts) = Map.lookup x table'
+          if Set.member y res then mzero
+          else update (Set.insert y res, conts) table' >>
+               foldr' (\k -> mplus (k y)) mzero conts
+      maybe producer consumer (Map.lookup x table)
+  return (readRef loc >>= return . map sanitize . Map.assocs,
+          \x -> readRef loc >>= callCC . feed x)
+
+memo :: (Ord a, Ord b) => (NDCK r s a b) -> ST s (NDCK r s a b)
+memo = fmap snd . memo'
 
 -- Fast Fibonnaci function
 ffib n = runST $ mdo
@@ -55,171 +60,89 @@ ffib n = runST $ mdo
   run (fib n)
 
 
+infixl 7 *>
+infixl 6 <|>
 
--- ( *> ) f g xs = f xs >>= g
--- ( <|> ) f g xs = (f xs) `mplus` (g xs)
--- epsilon xs = return xs 
--- term x = function | y:ys when x=y -> M.return ys
---                   | _ -> M.mzero ()
+type Parser r s a = [a] -> NDC r s [a]
 
--- module type GRAMMAR = functor (MM : MONADMEMOTABLE) -> sig 
---   val grammar : ((bytes * (bytes list, bytes list) MM.table MM.m) list *
---                  (bytes -> bytes list -> bytes list MM.Nondet.m)) MM.m
---   val sentence : int -> bytes list
--- end
+(*>), (<|>) :: Parser r s a -> Parser r s a -> Parser r s a 
+epsilon :: Parser r s a
+term :: Eq a => a -> Parser r s a
 
--- let words s = BatString.nsplit s ~by:" "
+( *> ) f g xs = f xs >>= g
+( <|> ) f g xs = (f xs) `mplus` (g xs)
+epsilon xs = return xs 
+term x (y:ys) | x==y = return ys
+term x _ = mzero
 
--- module MM = MemoTabT (Ref) (BatSet)
+parse :: (forall s. ST s (Parser [t] s t)) -> [t] -> [[t]]
+parse p xs = runST $ p >>= run . ($ xs)
 
--- module TestG (G: GRAMMAR) = struct
---   (* module MM = MemoTabT (Ref) (ListC) *)
---   module GM = G (MM)
---   include Parser (MM.Nondet)
---   include MonadOps (MM)
---   include MemoTabOps (MM)
---   open MM
+-- Some grammars to play with -------------------------------
 
---   let success = function | [] -> true | _ -> false
+johnson = mdo
+  v   <- return $ term "likes" <|> term "knows"
+  pn  <- return $ term "Kim" <|> term "Sandy"
+  det <- return $ term "every" <|> term "no"
+  n   <- return $ term "student" <|> term "professor"
+  np  <- memo $ det *> n <|> pn <|> np *> term "'s" *> n
+  vp  <- memo $ v *> np <|> v *> s
+  s   <- memo $ np *> vp
+  return s
 
+a = term 'a'
 
---   let get_table (label, getter) = 
---     getter >>= fun table ->
---     return (label, table)
+s :: ST s (Parser r s Char)
+s = mdo
+  s <- return $ a *> s *> s <|> epsilon
+  return s
 
---   let sent i = GM.sentence i
---   let parse start input = 
---     Ref.run ( GM.grammar >>= fun (getters, get_nonterm) ->
---               run ((get_nonterm start) input) >>= fun results ->
---               mapM get_table getters >>= fun tables ->
---               return (results, tables) )
+sm = mdo
+  sm <- memo $ a *> sm *> sm <|> epsilon
+  return sm
 
---   let profile start input = timeit (fun () -> fst (parse start input))
--- end
+sml = mdo
+  sml <- memo $ sml *> sml *> a <|> epsilon
+  return sml
 
--- module GrammarOps (MM: MONADMEMOTABLE) = struct
---   include Parser (MM.Nondet)
---   include MonadOps (MM)
---   include MemoTabOps (MM)
---   include MM
--- end
+smml = mdo
+  smml <- memo $ smml *> aux <|> epsilon
+  aux  <- memo $ smml *> a
+  return smml
 
--- module Johnson (MM : MONADMEMOTABLE) = struct
--- 	include GrammarOps (MM)
+tomita1 = mdo
+  np <- memo $ term 'n' <|> term 'd' *> term 'n' <|> np *> pp
+  pp <- memo $ term 'p' *> np
+  vp <- memo $ term 'v' *> np <|> vp *> pp
+  s  <- memo $ np *> vp
+  return s
 
---   let success = function | [] -> true | _ -> false
---   let grammar = 
---     let v   = term "likes" <|> term "knows" in
---     let pn  = term "Kim" <|> term "Sandy" in 
---     let det = term "every" <|> term "no" in
---     let n   = term "student" <|> term "professor" in
---     memrec (fun np -> det *> n <|> pn <|> np *> term "'s" *> n) >>= fun (get_np,np) ->
---     memrec2 ((fun (vp,s) -> v *> np <|> v *> s),
---              (fun (vp,s) -> np *> vp))                          >>= fun ((get_vp,get_s),(vp,s)) -> 
---     return ([("s",get_s); ("np",get_np); ("vp",get_vp)], 
---             function | "s" -> s
---                      | "vp" -> vp)
+tomita_sentence i = "nvdn" ++ Prelude.concat (replicate i "pdn")
 
---   let sentence = List.nth []
--- end
-
--- module Frost1 (MM: MONADMEMOTABLE) = struct
--- 	include GrammarOps (MM)
-
---   let grammar = 
---     let t = term in
---     mem (t "boy" <|> t "girl" <|> t "man" <|> t "woman") >>= fun (gn, n) ->
---     mem (t "knows" <|> t "respects" <|> t "loves") >>= fun (gv,v) ->
---     mem (t "helen" <|> t "john" <|> t "pat"      ) >>= fun (gpn, pn) ->
---     mem (t "and" <|> t "or"                      ) >>= fun (gconj, conj) ->
---     mem (t "every" <|> t "some"                  ) >>= fun (gdet, det) ->
---     mem (det *> n                                ) >>= fun (gdp, dp) ->
---     mem (pn <|> dp                               ) >>= fun (gnp', np') ->
---     memrec (fun np -> np' <|> np *> conj *> np   ) >>= fun (gnp, np) ->
---     memrec (fun vp -> v <|> vp *> conj *> vp     ) >>= fun (gvp, vp) ->
---     mem (np *> vp *> np) >>= fun (gs,s) ->
---     return (["np",gnp; "s",gs], (function "np" -> np | "s" -> s))
-
---   let s1 = "every boy or some girl and helen and john or pat " 
---   let s2 = s1^"knows and respects or loves "
---              ^"every boy or some girl and pat or john and helen"
---   let sentence = List.nth [words s1; words s2]
--- end
-
--- module FrostAmbig (MM: MONADMEMOTABLE) = struct
--- 	include GrammarOps (MM)
-
---   let grammar = 
---     let a = term "a" in 
---     let s = fix (fun s -> a *> s *> s <|> epsilon) in
---     memrec (fun sm -> a *> sm *> sm <|> epsilon) >>= fun (gsm, sm) ->
---     memrec (fun sml -> sml *> sml *> a <|> epsilon) >>= fun (gsml, sml) ->
---     memrec2 ((fun (smml, smml') -> smml *> smml' <|> epsilon),
---              (fun (smml, smml') -> smml *> a)) >>= fun ((gsmml,_), (smml,_)) ->
---     return (["s", return []; "sm",gsm; "sml",gsml; "smml",gsmml],
---             function "s" -> s | "sm" -> sm | "sml" -> sml | "smml" -> smml)
-
---   let sentence i = replicate i "a"
--- end
-
--- module T1 (MM: MONADMEMOTABLE) = struct
--- 	include GrammarOps (MM)
-	
--- 	let sentences i = (words "n v d n") @ List.concat (replicate i (words "p d n"))
--- 	let grammar = 
--- 	  memrec2 ((fun (np,pp) -> term "n" <|> term "d" *> term "n" <|> np *> pp),
---              (fun (np,pp) -> term "p" *> np)) >>= fun ((gnp,gpp), (np,pp)) ->
--- 		memrec (fun vp -> term "v" *> np <|> vp *> pp) >>= fun (gvp, vp) ->
--- 		mem (np *> vp) >>= fun (gs, s) ->
--- 		return (["s",gs], s)
--- end
-
--- module Tomita2 (MM: MONADMEMOTABLE) = struct
--- 	include GrammarOps (MM)
-	
---   (* polyadic memoising fixed point *)
---   let memrec_list fops =
---      mapM memo fops >>= fun memos_getters ->
---      let (getters, mfops) = List.split memos_getters in
---      let mfuns = fixlist mfops in
---      return (List.combine getters (fixlist mfops))
-
--- 	let sentence i = (words "n v d n") @ List.concat (replicate i (words "p d n"))
-
---   (* open recursive grammar - a lot of mutual recursion here *)
---   let [advm; adjm; nm; vc; np0; np1; np; pp; s; vp; dir; start] = List.map (fun i l -> List.nth l i) (iota 12)
-
---   let rules = 
--- 		let t = term in 
--- 		[ (* advm *) (fun g -> t "a" *> advm g <|> t "a" <|> advm g *> t "c" *> advm g)
---     ; (* adjm *) (fun g -> t "j" <|> t "j" *> adjm g <|> advm g *> t "j" <|> adjm g *> t "c" *> adjm g)
---     ; (* nm *)   (fun g -> t "n" <|> t "n" *> nm g)
---     ; (* vc *)   (fun g -> t "x" *> t "v" <|> t "v")
---     ; (* np0 *)  (fun g -> nm g <|> adjm g *> nm g <|> t "d" *> nm g <|> t "t" *> adjm g *> nm g)
---     ; (* np1 *)  (fun g -> adjm g *>  np0 g *> pp g *> pp g
---                        <|> adjm g *> np0 g *> pp g
---                        <|> adjm g *> np0 g
---                        <|> np0 g *> pp g
---                        <|> np0 g
---                        <|> np0 g *> pp g *> pp g)
---     ; (* np *)   (fun g -> np g *> t "c" *> np g
---                        <|> np1 g *> t "t" *> s g
---                        <|> np1 g *> s g
---                        <|> np1 g)
---     ; (* pp *)   (fun g -> pp g *> t "c" *> pp g <|> t "p" *> np g)
---     ; (* s *)    (fun g -> np g *> vp g *> pp g *> pp g
---                        <|> np g *> vp g *> pp g
---                        <|> np g *> vp g
---                        <|> s g *> t "c" *> s g)
---     ; (* vp *)   (fun g -> vc g *> np g <|> vp g *> t "c" *> vp g <|> vc g)
---     ; (* dir *)  (fun g -> dir g *> t "c" *> dir g
---                        <|> pp g *> vp g
---                        <|> vp g
---                        <|> vp g *> pp g)
---     ; (* start *)(fun g -> dir g <|> np g <|> s g)
---     ]
-
---   let grammar = memrec_list rules >>= fmap (flip List.nth 11) >>= fun (gs,s) ->
---                 return (["s",gs], fun "s" -> s)
--- end
-
+tomita2 = let t = term in mdo
+  advm <- memo $ t 'a' *> advm <|> t 'a' <|> advm *> t 'c' *> advm
+  adjm <- memo $ t 'j' <|> t 'j' *> adjm <|> advm *> t 'j' <|> adjm *> t 'c' *> adjm
+  nm   <- memo $ t 'n' <|> t 'n' *> nm
+  vc   <- memo $ t 'x' *> t 'v' <|> t 'v'
+  np0  <- memo $ nm <|> adjm *> nm <|> t 'd' *> nm <|> t 't' *> adjm *> nm
+  np1  <- memo $ adjm *>  np0 *> pp *> pp
+             <|> adjm *> np0 *> pp
+             <|> adjm *> np0
+             <|> np0 *> pp
+             <|> np0
+             <|> np0 *> pp *> pp
+  np   <- memo $ np *> t 'c' *> np
+             <|> np1 *> t 't' *> s
+             <|> np1 *> s
+             <|> np1
+  pp   <- memo $ pp *> t 'c' *> pp <|> t 'p' *> np
+  s    <- memo $ np *> vp *> pp *> pp
+             <|> np *> vp *> pp
+             <|> np *> vp
+             <|> s *> t 'c' *> s
+  vp   <- memo $ vc *> np <|> vp *> t 'c' *> vp <|> vc
+  dir  <- memo $ dir *> t 'c' *> dir
+             <|> pp *> vp
+             <|> vp
+             <|> vp *> pp
+  memo $ dir <|> np <|> s
