@@ -14,31 +14,12 @@ import Data.Foldable
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
-fix1 f = fp where fp x = f fp x
-
 -- class (Monad m, MonadPlus n) => MonadMemoTable m n where
---   run  :: n a -> m [a]
---   memo :: (c -> a -> n b) -> m (m [(a,[b])], c -> a -> n b)
+--   runM  :: n a -> m [a]
+--   memoM :: (Ord a, Ord b) => (a -> n b) -> m (m [(a,[b])], a -> n b)
 
-
--- mem  :: MonadMemoTable m n => (a -> n b) -> m (m [(a,[b])], a -> n b)
--- mem f = memo (\()-> f) >>= \(gt,mf) -> return (gt, mf ())
--- memrec f = memo f >>= \(g,mf) -> return (g, fix mf)
--- memrec2  (f,g) = do
---   (get_f, mf) <- memo f
---   (get_g, mg) <- memo g
---   let (fp,gp) = fix2 (mf,mg)
---   return ((get_f,get_g),(fp,gp))
-
-{- Plan.
- - 1. Use delimitied continuation with answer type polymorphism
- - 2. Create a new type wrapper around this to be an instance of MonadPlus
- -    using an arbitrary MonadPlus for reification
- - 3. Use ST for references
- -}
-
--- nondeterministic continuation monad
-type NDC r s = ContT r (ListT (ST s))
+type NDC r s = ContT r (ListT (ST s)) -- nondeterministic continuation monad
+type NDCK r s a b =  a -> NDC r s b   -- Kleilsi arrow of NDC monad
 
 instance MonadPlus (NDC r s) where
   mzero = ContT {runContT= \k -> mzero}
@@ -47,7 +28,7 @@ instance MonadPlus (NDC r s) where
 run :: NDC a s a -> ST s [a]
 run m = runListT (runContT m return)
 
-memo :: (Ord a, Ord b) => (a -> NDC r s b) -> ST s (a -> NDC r s b)
+memo :: (Ord a, Ord b) => (NDCK r s a b) -> ST s (NDCK r s a b)
 memo f = do
   loc <- newRef Map.empty
   let update x e t = lift (lift (writeRef loc (Map.insert x e t)))
@@ -67,48 +48,12 @@ memo f = do
                  foldr' (\k -> mplus (k y)) mzero conts
       in handle (Map.lookup x table)))
 
--- Keilsi arrow of NDC monad
-type NDCK r s a b =  a -> NDC r s b
-
--- type of open recursive arrow
-type Open r s a b = NDCK r s a b -> NDCK r s a b
-
-memopen :: (Ord a, Ord b) => Open r s a b -> ST s (Open r s a b)
-memopen fopen = do
-  loc <- newRef Map.empty
-  -- let liftRef m  = lift (lift m) in
-  -- let sanitize (x,(s,_)) = (x, Set.fold (:)s []) in
-  let update x e t = lift (lift (writeRef loc (Map.insert x e t)))
-  return (\fp x -> do
-    table <- readRef loc
-    callCC (\k ->
-      let handle (Just (res,conts)) = do
-            update x (res,k:conts) table
-            foldr' (mplus . k) mzero res
-          handle Nothing = do
-            update x (Set.empty,[k]) table
-            y <- fopen fp x
-            table' <- lift (lift (readRef loc))
-            let Just (res,conts) = Map.lookup x table'
-            if Set.member y res then mzero
-            else update x (Set.insert y res, conts) table' >>
-                 foldr' (\k -> mplus (k y)) mzero conts
-      in handle (Map.lookup x table)))
-
-fib' fib n = if n<2 then return n 
-             else liftM2 (+) (fib (n-2)) (fib (n-1))
--- mkfib = mfix fib'
-
-mkfib = memopen fib' >>= return . fix 
-
-mkfib' = mdo
+-- Fast Fibonnaci function
+ffib n = runST $ mdo
   fib <- memo (\n -> if n<2 then return n else 
                      liftM2 (+) (fib (n-2)) (fib (n-1)))
-  return fib
+  run (fib n)
 
--- These two need be run using runST
-test1 = mkfib >>= \f run (f 60)
-test2 = mkfib' >>= \f run (f 60)
 
 
 -- ( *> ) f g xs = f xs >>= g
