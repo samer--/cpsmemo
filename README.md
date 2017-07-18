@@ -35,8 +35,27 @@ Both systems can also be run in the OCaml or Haskell interactive environments. I
 
 ## Direct style implementation
 
-Directory ccmemo contains a direct style implementation using Oleg Kiselyov's delimcc library,
-which you can install using OPAM.
+Directory `ccmemo` contains a direct style implementation using Oleg Kiselyov's delimcc library,
+which you can install using OPAM. Although compilation to native code is successful, the resulting
+program crashes for some reason I don't know. Compiled to byte code, it is slightly slower than 
+the monadic version.
+
+## Haskell version
+
+The version in subdirectory promises a few things:
+	1. The basic monad implementations are already there.
+	2. There seems to be no more need for the Dynamic module to get sufficient polymorphism.
+	   Possibly, this is because we don't actually need multi-prompt delimited control here;
+		the Haskell ContT monad transformer seems to be sufficient.
+	3. No need for explict open recursive style, which is a bit of a pain for large sets
+	   of mutual recursive functions, such as in the Tomita2 grammar. In fact, Haskell's normal
+		recursive `let` is still no good for creating sets of recursive _monadic_ operations,
+		but it turns out that by using `Control.Monad.Fix` and the recursive `mdo` notation, we
+		can still get away without explicit open recursion -- the `mdo` notation does it all
+		behind the scene.
+
+The Haskell version is not complete yet, as I have yet to sort out the type classes to mirror
+the functorial parameterisation of the OCaml version, or the parser combinators.
 
 ## References
 
