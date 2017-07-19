@@ -1,6 +1,6 @@
 GHC = ghc -funbox-strict-fields -O2 
 
-test :
+test: main.hs cpsmemo.hs
 	${GHC} --make -o $@ main.hs cpsmemo.hs
 
 clean : 

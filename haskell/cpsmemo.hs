@@ -155,13 +155,8 @@ tomita2 = let t = term in mdo
              <|> vp *> pp
   memo $ dir <|> np <|> s
 
-gens sel = case sel of
-            "s" -> s
-            "sm" -> sm
-            "sml" -> sml
-            "smml" -> smml
-
-profile sel n = do
-  (t,_) <- timeItT $ putStrLn $ show $ length $ parse (gens sel) $ replicate n 'a'
+profile :: (forall s. ParserGen s [] [Char] Char) -> Int -> IO ()
+profile gen n = do
+  (t,_) <- timeItT $ putStrLn $ show $ length $ parse gen $ replicate n 'a'
   putStrLn $ "Time: " ++ (show t)
 
