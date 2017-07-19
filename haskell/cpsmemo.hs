@@ -15,7 +15,7 @@ import qualified Data.Set as Set
 
 type NDC s n r = ContT (n r) (ST s)    -- nondeterministic continuation monad
 type NDCK s n r a b = a -> NDC s n r b -- Kleilsi arrow of NDC monad ... SNRAB.
-type Table a b = [(a, Set.Set b)]
+type Table a b = Map.Map a (Set.Set b)
 
 instance MonadPlus n => MonadPlus (NDC s n r) where
   mzero = ContT {runContT= \_ -> return mzero}
@@ -27,7 +27,6 @@ run m = runContT m (return . return)
 memo' :: (MonadPlus n, Ord a, Ord b) => (NDCK s n r a b) -> ST s (ST s (Table a b), NDCK s n r a b)
 memo' f = do
   loc <- newRef Map.empty
-  let sanitize (x,(s,_)) = (x,s)
   let feed x table k = do
       let update e t = writeRef loc (Map.insert x e t)
       let consumer (res,conts) = do
@@ -42,7 +41,7 @@ memo' f = do
           else update (Set.insert y res, conts) table' >>
                foldr' (\k -> mplus (k y)) mzero conts
       maybe producer consumer (Map.lookup x table)
-  return (readRef loc >>= return . map sanitize . Map.assocs,
+  return (readRef loc >>= return . fmap fst,
           \x -> readRef loc >>= callCC . feed x)
 
 memo :: (MonadPlus n, Ord a, Ord b) => (NDCK s n r a b) -> ST s (NDCK s n r a b)
