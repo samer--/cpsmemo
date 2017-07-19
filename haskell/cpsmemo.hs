@@ -12,7 +12,6 @@ import Control.Monad.Fix
 import Data.Foldable
 import qualified Data.Map as Map
 import qualified Data.Set as Set
-import System.TimeIt
 
 type NDC s n r = ContT (n r) (ST s)    -- nondeterministic continuation monad
 type NDCK s n r a b = a -> NDC s n r b -- Kleilsi arrow of NDC monad ... SNRAB.
@@ -154,9 +153,3 @@ tomita2 = let t = term in mdo
              <|> vp
              <|> vp *> pp
   memo $ dir <|> np <|> s
-
-profile :: (forall s. ParserGen s [] [Char] Char) -> Int -> IO ()
-profile gen n = do
-  (t,_) <- timeItT $ putStrLn $ show $ length $ parse gen $ replicate n 'a'
-  putStrLn $ "Time: " ++ (show t)
-
