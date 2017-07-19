@@ -1,5 +1,12 @@
 ## Haskell implementation of CPS left recursive memoisation
 
+### Prerequisites
+
+The `ref-fd` provides the required version of `MonadRef`.
+You also need `timeit` to use Main.hs.
+
+### Types
+
 This use a stack of monads to handle most of the plumbing: the
 nondeterministic stateful continuation monad is
 
