@@ -12,6 +12,28 @@ import Control.Monad.Fix
 import Data.Foldable
 import qualified Data.Map as Map
 import qualified Data.Set as Set
+import Debug.Trace
+
+-- Tree monad for lazy search tree -------------------------------
+
+data FreePlus a = Return a | Plus (FreePlus a) (FreePlus a) | Zero
+
+member :: (Eq a) => a -> FreePlus a -> Bool
+member x Zero = False
+member x (Return y) = (x == y)
+member x (Plus l r) = member x l || member x r
+
+instance Monad FreePlus where
+  return = Return
+  (Return x) >>= f = f x
+  Zero >>= _ = Zero
+  Plus l r >>= f = Plus (l >>= f) (r >>= f)
+
+instance MonadPlus FreePlus where
+  mzero  = Zero
+  mplus  = Plus
+
+-- Nondeerministic continuation based memoisation monad --------
 
 type NDC s n r = ContT (n r) (ST s)    -- nondeterministic continuation monad
 type NDCK s n r a b = a -> NDC s n r b -- Kleilsi arrow of NDC monad ... SNRAB.
@@ -19,7 +41,7 @@ type Table a b = Map.Map a (Set.Set b)
 
 instance MonadPlus n => MonadPlus (NDC s n r) where
   mzero = ContT {runContT= \_ -> return mzero}
-  mplus f g = ContT {runContT= \k -> liftM2 mplus (runContT f k) (runContT g k)}
+  mplus f g = ContT {runContT= \k -> liftM2 mplus (runContT f (rc k)) (runContT g (rc k))}
 
 run :: MonadPlus n => NDC s n a a -> ST s (n a)
 run m = runContT m (return . return)
@@ -31,7 +53,7 @@ memo' f = do
       let update e t = writeRef loc (Map.insert x e t)
       let consumer (res,conts) = do
           update (res, k:conts) table
-          foldr' (mplus . k) mzero res
+          foldr' (mplus . rc k) mzero res
       let producer = do
           update (Set.empty, [k]) table
           y <- f x
@@ -39,7 +61,7 @@ memo' f = do
           let Just (res,conts) = Map.lookup x table'
           if Set.member y res then mzero
           else update (Set.insert y res, conts) table' >>
-               foldr' (\k -> mplus (k y)) mzero conts
+               foldr' (\k -> mplus (rc k y)) mzero conts
       maybe producer consumer (Map.lookup x table)
   return (readRef loc >>= return . fmap fst,
           \x -> readRef loc >>= callCC . feed x)
@@ -78,6 +100,10 @@ parse' gen xs = runST $ do
   result <- run (p xs)
   table <- getter
   return (result, table)
+
+-- generates a lazy tree using FreePlus
+lparse :: (forall s. ParserGen s FreePlus [t] t) -> [t] -> FreePlus [t]
+lparse p xs = runST $ p >>= run . ($ xs)
 
 -- -- Some grammars to play with -------------------------------
 
