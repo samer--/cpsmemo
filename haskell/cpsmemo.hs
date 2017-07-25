@@ -41,7 +41,7 @@ type Table a b = Map.Map a (Set.Set b)
 
 instance MonadPlus n => MonadPlus (NDC s n r) where
   mzero = ContT {runContT= \_ -> return mzero}
-  mplus f g = ContT {runContT= \k -> liftM2 mplus (runContT f (rc k)) (runContT g (rc k))}
+  mplus f g = ContT {runContT= \k -> liftM2 mplus (runContT f k) (runContT g k)}
 
 run :: MonadPlus n => NDC s n a a -> ST s (n a)
 run m = runContT m (return . return)
@@ -53,7 +53,7 @@ memo' f = do
       let update e t = writeRef loc (Map.insert x e t)
       let consumer (res,conts) = do
           update (res, k:conts) table
-          foldr' (mplus . rc k) mzero res
+          foldr' (mplus . k) mzero res
       let producer = do
           update (Set.empty, [k]) table
           y <- f x
@@ -61,7 +61,7 @@ memo' f = do
           let Just (res,conts) = Map.lookup x table'
           if Set.member y res then mzero
           else update (Set.insert y res, conts) table' >>
-               foldr' (\k -> mplus (rc k y)) mzero conts
+               foldr' (\k -> mplus (k y)) mzero conts
       maybe producer consumer (Map.lookup x table)
   return (readRef loc >>= return . fmap fst,
           \x -> readRef loc >>= callCC . feed x)
