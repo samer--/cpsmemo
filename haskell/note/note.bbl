@@ -1,0 +1,33 @@
+\newcommand{\postscriptref}[1] {(\emph{see} \textbf{#1})}
+  \providecommand{\url}[1] {\texttt{#1}}
+\begin{thebibliography}{4}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Abdallah(2017{\natexlab{a}})]{Abdallah2017a}
+S.~Abdallah.
+\newblock Memoisation: Purely, left-recursively, and with (continuation
+  passing) style.
+\newblock \emph{arXiv preprint arXiv:1707.04724}, 2017{\natexlab{a}}.
+
+\bibitem[Abdallah(2017{\natexlab{b}})]{Abdallah2017b}
+S.~Abdallah.
+\newblock More declarative tabling in {P}rolog using multi-prompt delimited
+  control.
+\newblock Technical report, Jukedeck Ltd., 2017{\natexlab{b}}.
+
+\bibitem[Erk{\"o}k and Launchbury(2000)]{ErkokLaunchbury2000}
+L.~Erk{\"o}k and J.~Launchbury.
+\newblock Recursive monadic bindings.
+\newblock In \emph{ACM Sigplan Notices}, volume~35, pages 174--185. ACM, 2000.
+
+\bibitem[Johnson(1995)]{Johnson1995}
+M.~Johnson.
+\newblock Memoization in top-down parsing.
+\newblock \emph{Computational Linguistics}, 21\penalty0 (3):\penalty0 405--417,
+  1995.
+
+\end{thebibliography}

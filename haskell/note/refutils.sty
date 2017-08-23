@@ -1,0 +1,13 @@
+\def\tag#1#2{#1.~#2}
+\def\paren#1{(#1)}
+
+\def\DefineLabelClass#1#2{%
+	\expandafter\gdef\csname #1lab\endcsname##1{\label{#1:##1}}%
+	\expandafter\gdef\csname #1rf\endcsname##1{#2{\ref{#1:##1}}}%
+}
+
+\DefineLabelClass{fig}{\tag{Fig}}
+\DefineLabelClass{sec}{\tag{Sec}}
+\DefineLabelClass{tab}{\tag{Tab}}
+\DefineLabelClass{eq}{\paren}
+

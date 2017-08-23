@@ -1,0 +1,48 @@
+\usepackage{listings}
+
+\definecolor{Pale}{rgb}{0.6,0.6,0.6}
+
+% \definecolor{ListingBar}{rgb}{0.8,0.8,0.8}
+
+\lstdefinelanguage{Haskelly}{%
+   morekeywords={where,let,as,module,import,do,mdo,instance,type,data},
+   sensitive,%
+   morecomment=[l]--,%
+   morecomment=[n]{\{-}{-\}},%
+   morestring=[b]",%
+   literate={+}{{$+$}}1 {/}{{$/$}}1 
+            {=}{{$=$}}1{>}{{$>$}}1{<}{{$<$}}1 
+            {~}{{$\approx$}}1
+            {->}{{$\rightarrow$}}2
+            {<-}{{$\leftarrow$}}2
+            {>=}{{$\geq$}}2 
+            {<=}{{$\leq$}}2 {=>}{{$\Rightarrow$}}2
+            {<<}{{$\ll$}}2 {>>}{{$\gg$}}2 {>>=}{{$\gg\!\!=$}}2
+            {*>}{{$*\!\!\!>$}}2 {<|>}{{$<\!\!\!|\!\!\!>$}}3
+            {]}{{$\,$]}}1%  space before list end
+           {\\}{{$\lambda$}}1
+  }[keywords,comments,strings]%
+%
+ 
+\lstnewenvironment{haskell} {\lstset{language=Haskelly,
+  gobble=2,
+  tabsize=2,
+  keepspaces=true,
+  columns=spaceflexible,
+  frame=lines,
+  numbers=left,
+  numbersep=1em,
+  stepnumber=4,
+  firstnumber=auto,
+  numberstyle=\small\color{Pale},
+  aboveskip=0.75em,
+  belowskip=0.75em}} {}
+
+\lstnewenvironment{hasklet} {\lstset{language=Haskelly,
+  gobble=2,
+  tabsize=2,
+  keepspaces=true,
+  xleftmargin=2em,
+  columns=spaceflexible,
+  aboveskip=0.75em,
+  belowskip=0.75em}} {}
