@@ -1,6 +1,6 @@
 \newcommand{\postscriptref}[1] {(\emph{see} \textbf{#1})}
   \providecommand{\url}[1] {\texttt{#1}}
-\begin{thebibliography}{4}
+\begin{thebibliography}{5}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -18,6 +18,12 @@ S.~Abdallah.
 \newblock More declarative tabling in {P}rolog using multi-prompt delimited
   control.
 \newblock Technical report, Jukedeck Ltd., 2017{\natexlab{b}}.
+
+\bibitem[Earley(1970)]{Earley1970}
+J.~Earley.
+\newblock An efficient context-free parsing algorithm.
+\newblock \emph{Communications of the ACM}, 13\penalty0 (2):\penalty0 94--102,
+  1970.
 
 \bibitem[Erk{\"o}k and Launchbury(2000)]{ErkokLaunchbury2000}
 L.~Erk{\"o}k and J.~Launchbury.

@@ -3,10 +3,12 @@
 \usepackage[T1]{fontenc}
 \usepackage{xcolor,hyperref}
 \usepackage[round]{natbib}
-\usepackage{units}
+\usepackage{xspace,units}
 \usepackage{refutils}
 \usepackage{fixfloats}
 \usepackage{hask}
+
+\newcommand{\citepos}[1]{\citeauthor{#1}'s \citeyearpar{#1}\xspace}
 
 \lstset{
   basicstyle=\small\rmfamily,
@@ -26,6 +28,7 @@
 \definecolor{DarkRed}{rgb}{0.4,0.1,0}
 \definecolor{MidRed}{rgb}{0.6,0,0}
 \hypersetup{colorlinks,citecolor=black,urlcolor=MidRed,linkcolor=MidRed}
+
 
 \title{Monadic memoisation of non-deterministic left-recursive computations in Haskell}
 \author{Samer Abdallah}
@@ -269,6 +272,12 @@ a |Parser|, applies the parser to the input sequence |xs| to a get computation
 in the |NDC s FreePlus r| monad, runs that to get a computation in the |ST| monad,
 and finally runs that to get a collection of tail sequences resulting from all
 possible parses.
+
+It is worth noting that the parsing using this framework is \emph{efficient}: like
+\citepos{Johnson1995} parser and parsing using tabling in Prolog \citep{Abdallah2017b},
+it is equivalent to Earley's chart parsing algorithm \cite{Earley1970}, which results
+in at-worst complexity of $O(N^3)$ in the length of the input sequence, depending on the
+level of ambiguitiy in the grammar.
 
 \section{Conclusions}
 The implementation presented here in Haskell is, in essence, the same as the OCaml
