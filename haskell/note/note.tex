@@ -256,8 +256,8 @@ is represented as a lazy tree.
 
   instance Monad FreePlus where
     return = Return
-    (Return x) >>= f = f x
-    Zero >>= _ = Zero
+    Zero     >>= _ = Zero
+    Return x >>= f = f x
     Plus l r >>= f = Plus (l >>= f) (r >>= f)
 
   instance MonadPlus FreePlus where
@@ -277,7 +277,7 @@ It is worth noting that the parsing using this framework is \emph{efficient}: li
 \citepos{Johnson1995} parser and parsing using tabling in Prolog \citep{Abdallah2017b},
 it is equivalent to Earley's chart parsing algorithm \cite{Earley1970}, which results
 in at-worst complexity of $O(N^3)$ in the length of the input sequence, depending on the
-level of ambiguitiy in the grammar.
+level of ambiguity in the grammar.
 
 \section{Conclusions}
 The implementation presented here in Haskell is, in essence, the same as the OCaml
