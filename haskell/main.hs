@@ -14,6 +14,8 @@ str2gen sel = case sel of
 main = do
   [sel,nstr] <- getArgs
   profile (str2gen sel) (read nstr)
+  -- (n:_) <- getArgs
+  -- timeIt $ putStrLn (ffib (read n)>>= show)
 
 profile :: (forall s. ParserGen s [] [Char] Char) -> Int -> IO ()
 profile gen n = do

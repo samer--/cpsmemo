@@ -33,7 +33,7 @@ instance MonadPlus FreePlus where
   mzero  = Zero
   mplus  = Plus
 
--- Nondeerministic continuation based memoisation monad --------
+-- Nondeterministic continuation based memoisation monad --------
 
 type NDC s n r = ContT (n r) (ST s)    -- nondeterministic continuation monad
 type NDCK s n r a b = a -> NDC s n r b -- Kleilsi arrow of NDC monad ... SNRAB.
